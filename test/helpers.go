@@ -14,6 +14,7 @@ type route struct {
 	method  string
 	pattern string
 	path    string
+	params  string // As json
 }
 
 // Creates empty request and response writer
