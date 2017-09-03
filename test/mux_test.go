@@ -1,4 +1,4 @@
-package yac
+package yac_test
 
 import (
 	"testing"
@@ -6,17 +6,18 @@ import (
 	"bytes"
 	"net/http"
 	"net/http/httptest"
+	"github.com/weitbelou/yac"
 )
 
 func TestRouterCreate(t *testing.T) {
-	_, err := NewRouter("/api/v1")
+	_, err := yac.NewRouter("/api/v1")
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
 }
 
 func TestRouterResolve(t *testing.T) {
-	router, _ := NewRouter("/api/v1")
+	router, _ := yac.NewRouter("/api/v1")
 	router.Get("/users/{hex:id}", func(_ http.ResponseWriter, _ *http.Request) {})
 
 	reader := bytes.NewBufferString("")
