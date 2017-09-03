@@ -26,7 +26,7 @@ func putParamsToRequest(req *http.Request, params params) *http.Request {
 type params struct {
 	Query      map[string]string
 	Body       []byte
-	PathParams map[string]string
+	PathParams map[string]interface{}
 }
 
 // Creates new params
@@ -61,9 +61,9 @@ func valuesToGetParams(values url.Values) map[string]string {
 // path params = {"id": "599a49bacdf43b817eeea57b"}
 
 // Extract path params from path
-func extractPathParams(pattern *regexp.Regexp, path string) map[string]string {
+func extractPathParams(pattern *regexp.Regexp, path string) map[string]interface{} {
 	match := pattern.FindStringSubmatch(path)
-	result := make(map[string]string)
+	result := make(map[string]interface{})
 
 	for i, name := range pattern.SubexpNames() {
 		if i != 0 {
