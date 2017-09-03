@@ -7,6 +7,10 @@ import (
 	"net/http"
 	"net/http/httptest"
 
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/weitbelou/yac"
 )
 
@@ -67,4 +71,54 @@ func paramsHandler(w http.ResponseWriter, req *http.Request) {
 	}
 
 	w.Write(js)
+}
+
+// Helper for 'resolve' tests
+func testResolve(t *testing.T, routes []route) {
+	t.Helper()
+
+	router, err := createRouter(routes, emptyHandler)
+	require.Nil(t, err, "can not create router: %v", err)
+
+	req, w := createRequestResponse()
+
+	for _, route := range routes {
+		resetRequestResponse(req, w, route.method, route.path)
+		router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusOK, w.Code, "can not resolve route %+v", route)
+	}
+}
+
+// Helper for 'resolve' benchmarks
+func benchResolve(b *testing.B, routes []route) {
+	b.Helper()
+
+	router, err := createRouter(routes, emptyHandler)
+	require.Nil(b, err, "can not create router: %v", err)
+
+	req, w := createRequestResponse()
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		for _, route := range routes {
+			resetRequestResponse(req, w, route.method, route.path)
+			router.ServeHTTP(w, req)
+		}
+	}
+}
+
+// Helper for 'params' tests
+func testParams(t *testing.T, routes []route) {
+	t.Helper()
+
+	router, err := createRouter(routes, paramsHandler)
+	require.Nil(t, err, "can not create router: %v", err)
+
+	req, w := createRequestResponse()
+	for _, route := range routes {
+		resetRequestResponse(req, w, route.method, route.path)
+		router.ServeHTTP(w, req)
+		assert.JSONEq(t, route.params, w.Body.String(),
+			"invalid params for \n\t%s\n\t%s\n\t%s", route.method, route.pattern, route.path)
+	}
 }
