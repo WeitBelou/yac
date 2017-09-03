@@ -13,7 +13,7 @@ func TestExtractPathParams(t *testing.T) {
 	pattern := regexp.MustCompile(`/users/(?P<id>\d+)`)
 	pathParams := extractPathParams(pattern, "/users/12")
 
-	expectedPathParams := PathParams{"id": "12"}
+	expectedPathParams := map[string]string{"id": "12"}
 
 	if !reflect.DeepEqual(pathParams, expectedPathParams) {
 		t.Fail()
