@@ -4,20 +4,20 @@ import (
 	"bytes"
 	"net/http"
 	"net/http/httptest"
-	"reflect"
 	"regexp"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestExtractPathParams(t *testing.T) {
 	pattern := regexp.MustCompile(`/users/(?P<id>\d+)`)
 	pathParams := extractPathParams(pattern, "/users/12")
 
-	expectedPathParams := map[string]string{"id": "12"}
+	expectedPathParams := map[string]interface{}{"id": "12"}
 
-	if !reflect.DeepEqual(pathParams, expectedPathParams) {
-		t.Fail()
-	}
+	assert.Equal(t, expectedPathParams, pathParams)
 }
 
 func TestPostBody(t *testing.T) {
@@ -31,9 +31,7 @@ func TestPostBody(t *testing.T) {
 		t.Fail()
 	}
 
-	if !bytes.Equal(p.Body, bodyBuf.Bytes()) {
-		t.Fail()
-	}
+	assert.JSONEq(t, bodyBuf.String(), string(p.Body))
 }
 
 func TestNilBody(t *testing.T) {
@@ -41,11 +39,7 @@ func TestNilBody(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, path, nil)
 
 	p, err := newParams(req, regexp.MustCompile(path), path)
-	if err != nil {
-		t.Fail()
-	}
+	require.Nil(t, err, "can not extract params: %v", err)
 
-	if !bytes.Equal(p.Body, nil) {
-		t.Fail()
-	}
+	assert.Equal(t, p.Body, make([]byte, 0))
 }
