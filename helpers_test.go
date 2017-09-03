@@ -60,3 +60,9 @@ func TestExtractParams(t *testing.T) {
 
 	assert.JSONEq(t, `{"owner":"owner","repo":"repo"}`, string(js))
 }
+
+func TestPatternMatching(t *testing.T) {
+	pattern := regexp.MustCompile(`^/user/subscriptions/(?P<owner>[[:alnum:]]+?)/(?P<repo>[[:alnum:]]+?)/?$`)
+	path := `/events`
+	assert.NotRegexp(t, pattern, path)
+}
