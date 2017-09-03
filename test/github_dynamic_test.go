@@ -416,6 +416,7 @@ func TestGitHubParams(t *testing.T) {
 	for _, route := range githubDynamic {
 		resetRequestResponse(req, w, route.method, route.path)
 		router.ServeHTTP(w, req)
-		assert.JSONEq(t, route.params, w.Body.String(), "invalid params for '%+v'", route)
+		assert.JSONEq(t, route.params, w.Body.String(),
+			"invalid params for \n\t%s\n\t%s\n\t%s", route.method, route.pattern, route.path)
 	}
 }
