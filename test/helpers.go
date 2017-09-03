@@ -2,6 +2,7 @@ package yac
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -9,12 +10,10 @@ import (
 	"github.com/weitbelou/yac"
 )
 
-type routeTestCase struct {
+type route struct {
 	method  string
 	pattern string
-
-	path       string
-	pathParams map[string]string
+	path    string
 }
 
 // Creates empty request and response writer
@@ -33,7 +32,7 @@ func resetRequestResponse(req *http.Request, w *httptest.ResponseRecorder, metho
 }
 
 // Initialize router with list of routes
-func createRouter(routes []routeTestCase, handler http.HandlerFunc) (http.Handler, error) {
+func createRouter(routes []route, handler http.HandlerFunc) (http.Handler, error) {
 	router, err := yac.NewRouter("")
 	if err != nil {
 		return nil, fmt.Errorf("can not create router: %v", err)
@@ -46,4 +45,25 @@ func createRouter(routes []routeTestCase, handler http.HandlerFunc) (http.Handle
 	}
 
 	return router, nil
+}
+
+// Empty handler to return 200 for resolved routes.
+func emptyHandler(_ http.ResponseWriter, _ *http.Request) {}
+
+// Params handler
+func paramsHandler(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params, err := yac.Params(req)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	js, err := json.Marshal(params.PathParams)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	w.Write(js)
 }
