@@ -9,13 +9,68 @@ import (
 	"github.com/weitbelou/yac"
 )
 
-// http://developer.github.com/v3/
-var githubAPI = []yac.Route{
+var githubStaticAPI = []yac.Route{
 	// OAuth Authorizations
 	{Method: "GET", Pattern: "/authorizations"},
-	{Method: "GET", Pattern: "/authorizations/{int:id}"},
 	{Method: "POST", Pattern: "/authorizations"},
 
+	// Activity
+	{Method: "GET", Pattern: "/events"},
+	{Method: "GET", Pattern: "/feeds"},
+	{Method: "GET", Pattern: "/notifications"},
+	{Method: "PUT", Pattern: "/notifications"},
+	{Method: "GET", Pattern: "/user/starred"},
+	{Method: "GET", Pattern: "/user/subscriptions"},
+
+	// Gists
+	{Method: "GET", Pattern: "/gists"},
+	{Method: "GET", Pattern: "/gists/public"},
+	{Method: "GET", Pattern: "/gists/starred"},
+	{Method: "POST", Pattern: "/gists"},
+
+	// Issues
+	{Method: "GET", Pattern: "/issues"},
+	{Method: "GET", Pattern: "/user/issues"},
+
+	// Miscellaneous
+	{Method: "GET", Pattern: "/emojis"},
+	{Method: "GET", Pattern: "/gitignore/templates"},
+	{Method: "POST", Pattern: "/markdown"},
+	{Method: "POST", Pattern: "/markdown/raw"},
+	{Method: "GET", Pattern: "/meta"},
+	{Method: "GET", Pattern: "/rate_limit"},
+
+	// Organizations
+	{Method: "GET", Pattern: "/user/orgs"},
+	{Method: "GET", Pattern: "/user/teams"},
+
+	// Repositories
+	{Method: "GET", Pattern: "/user/repos"},
+	{Method: "GET", Pattern: "/repositories"},
+	{Method: "POST", Pattern: "/user/repos"},
+
+	// Search
+	{Method: "GET", Pattern: "/search/repositories"},
+	{Method: "GET", Pattern: "/search/code"},
+	{Method: "GET", Pattern: "/search/issues"},
+	{Method: "GET", Pattern: "/search/users"},
+
+	// Users
+	{Method: "GET", Pattern: "/user"},
+	{Method: "PATCH", Pattern: "/user"},
+	{Method: "GET", Pattern: "/users"},
+	{Method: "GET", Pattern: "/user/emails"},
+	{Method: "POST", Pattern: "/user/emails"},
+	{Method: "DELETE", Pattern: "/user/emails"},
+	{Method: "GET", Pattern: "/user/followers"},
+	{Method: "GET", Pattern: "/user/following"},
+	{Method: "GET", Pattern: "/user/keys"},
+	{Method: "POST", Pattern: "/user/keys"},
+}
+
+var githubDynamicAPI = []yac.Route{
+	// OAuth Authorizations
+	{Method: "GET", Pattern: "/authorizations/{int:id}"},
 	{Method: "PUT", Pattern: "/authorizations/clients/{int:client_id}"},
 	{Method: "PATCH", Pattern: "/authorizations/{int:id}"},
 	{Method: "DELETE", Pattern: "/authorizations/{int:id}"},
@@ -24,7 +79,6 @@ var githubAPI = []yac.Route{
 	{Method: "DELETE", Pattern: "/applications/{int:client_id}/tokens/{str:access_token}"},
 
 	// Activity
-	{Method: "GET", Pattern: "/events"},
 	{Method: "GET", Pattern: "/repos/{str:owner}/{str:repo}/events"},
 	{Method: "GET", Pattern: "/networks/{str:owner}/{str:repo}/events"},
 	{Method: "GET", Pattern: "/orgs/{str:org}/events"},
@@ -33,10 +87,7 @@ var githubAPI = []yac.Route{
 	{Method: "GET", Pattern: "/users/{str:user}/events"},
 	{Method: "GET", Pattern: "/users/{str:user}/events/public"},
 	{Method: "GET", Pattern: "/users/{str:user}/events/orgs/{str:org}"},
-	{Method: "GET", Pattern: "/feeds"},
-	{Method: "GET", Pattern: "/notifications"},
 	{Method: "GET", Pattern: "/repos/{str:owner}/{str:repo}/notifications"},
-	{Method: "PUT", Pattern: "/notifications"},
 	{Method: "PUT", Pattern: "/repos/{str:owner}/{str:repo}/notifications"},
 	{Method: "GET", Pattern: "/notifications/threads/{int:id}"},
 	{Method: "PATCH", Pattern: "/notifications/threads/{int:id}"},
@@ -45,13 +96,11 @@ var githubAPI = []yac.Route{
 	{Method: "DELETE", Pattern: "/notifications/threads/{int:id}/subscription"},
 	{Method: "GET", Pattern: "/repos/{str:owner}/{str:repo}/stargazers"},
 	{Method: "GET", Pattern: "/users/{str:user}/starred"},
-	{Method: "GET", Pattern: "/user/starred"},
 	{Method: "GET", Pattern: "/user/starred/{str:owner}/{str:repo}"},
 	{Method: "PUT", Pattern: "/user/starred/{str:owner}/{str:repo}"},
 	{Method: "DELETE", Pattern: "/user/starred/{str:owner}/{str:repo}"},
 	{Method: "GET", Pattern: "/repos/{str:owner}/{str:repo}/subscribers"},
 	{Method: "GET", Pattern: "/users/{str:user}/subscriptions"},
-	{Method: "GET", Pattern: "/user/subscriptions"},
 	{Method: "GET", Pattern: "/repos/{str:owner}/{str:repo}/subscription"},
 	{Method: "PUT", Pattern: "/repos/{str:owner}/{str:repo}/subscription"},
 	{Method: "DELETE", Pattern: "/repos/{str:owner}/{str:repo}/subscription"},
@@ -60,12 +109,8 @@ var githubAPI = []yac.Route{
 	{Method: "DELETE", Pattern: "/user/subscriptions/{str:owner}/{str:repo}"},
 
 	// Gists
-	{Method: "GET", Pattern: "/users/str:user/gists"},
-	{Method: "GET", Pattern: "/gists"},
-	{Method: "GET", Pattern: "/gists/public"},
-	{Method: "GET", Pattern: "/gists/starred"},
+	{Method: "GET", Pattern: "/users/{str:user}/gists"},
 	{Method: "GET", Pattern: "/gists/{int:id}"},
-	{Method: "POST", Pattern: "/gists"},
 	{Method: "PATCH", Pattern: "/gists/{int:id}"},
 	{Method: "PUT", Pattern: "/gists/{int:id}/star"},
 	{Method: "DELETE", Pattern: "/gists/{int:id}/star"},
@@ -89,8 +134,6 @@ var githubAPI = []yac.Route{
 	{Method: "POST", Pattern: "/repos/{str:owner}/{str:owner}/git/trees"},
 
 	// Issues
-	{Method: "GET", Pattern: "/issues"},
-	{Method: "GET", Pattern: "/user/issues"},
 	{Method: "GET", Pattern: "/orgs/{str:org}/issues"},
 	{Method: "GET", Pattern: "/repos/{str:owner}/{str:owner}/issues"},
 	{Method: "GET", Pattern: "/repos/{str:owner}/{str:owner}/issues/{int:user}"},
@@ -125,17 +168,10 @@ var githubAPI = []yac.Route{
 	{Method: "DELETE", Pattern: "/repos/{str:owner}/{str:owner}/milestones/{int:user}"},
 
 	// Miscellaneous
-	{Method: "GET", Pattern: "/emojis"},
-	{Method: "GET", Pattern: "/gitignore/templates"},
 	{Method: "GET", Pattern: "/gitignore/templates/{str:name}"},
-	{Method: "POST", Pattern: "/markdown"},
-	{Method: "POST", Pattern: "/markdown/raw"},
-	{Method: "GET", Pattern: "/meta"},
-	{Method: "GET", Pattern: "/rate_limit"},
 
 	// Organizations
 	{Method: "GET", Pattern: "/users/{str:user}/orgs"},
-	{Method: "GET", Pattern: "/user/orgs"},
 	{Method: "GET", Pattern: "/orgs/{str:org}"},
 	{Method: "PATCH", Pattern: "/orgs/{str:org}"},
 	{Method: "GET", Pattern: "/orgs/{str:org}/members"},
@@ -158,7 +194,6 @@ var githubAPI = []yac.Route{
 	{Method: "GET", Pattern: "/teams/{int:id}/repos/{str:owner}/{str:repo}"},
 	{Method: "PUT", Pattern: "/teams/{int:id}/repos/{str:owner}/{str:repo}"},
 	{Method: "DELETE", Pattern: "/teams/{int:id}/repos/{str:owner}/{str:repo}"},
-	{Method: "GET", Pattern: "/user/teams"},
 
 	// Pull Requests
 	{Method: "GET", Pattern: "/repos/{str:owner}/{str:owner}/pulls"},
@@ -177,11 +212,8 @@ var githubAPI = []yac.Route{
 	{Method: "DELETE", Pattern: "/repos/{str:owner}/{str:owner}/pulls/comments/{int:user}"},
 
 	// Repositories
-	{Method: "GET", Pattern: "/user/repos"},
 	{Method: "GET", Pattern: "/users/{str:user}/repos"},
 	{Method: "GET", Pattern: "/orgs/{str:org}/repos"},
-	{Method: "GET", Pattern: "/repositories"},
-	{Method: "POST", Pattern: "/user/repos"},
 	{Method: "POST", Pattern: "/orgs/{str:org}/repos"},
 	{Method: "GET", Pattern: "/repos/{str:owner}/{str:repo}"},
 	{Method: "PATCH", Pattern: "/repos/{str:owner}/{str:repo}"},
@@ -241,10 +273,6 @@ var githubAPI = []yac.Route{
 	{Method: "POST", Pattern: "/repos/{str:owner}/{str:owner}/statuses/{str:ref}"},
 
 	// Search
-	{Method: "GET", Pattern: "/search/repositories"},
-	{Method: "GET", Pattern: "/search/code"},
-	{Method: "GET", Pattern: "/search/issues"},
-	{Method: "GET", Pattern: "/search/users"},
 	{Method: "GET", Pattern: "/legacy/issues/search/{str:owner}/{str:repo}sitory/{str:state}/{str:keyword}"},
 	{Method: "GET", Pattern: "/legacy/repos/search/{str:keyword}"},
 	{Method: "GET", Pattern: "/legacy/user/search/{str:keyword}"},
@@ -252,26 +280,25 @@ var githubAPI = []yac.Route{
 
 	// Users
 	{Method: "GET", Pattern: "/users/{str:user}"},
-	{Method: "GET", Pattern: "/user"},
-	{Method: "PATCH", Pattern: "/user"},
-	{Method: "GET", Pattern: "/users"},
-	{Method: "GET", Pattern: "/user/emails"},
-	{Method: "POST", Pattern: "/user/emails"},
-	{Method: "DELETE", Pattern: "/user/emails"},
 	{Method: "GET", Pattern: "/users/{str:user}/followers"},
-	{Method: "GET", Pattern: "/user/followers"},
 	{Method: "GET", Pattern: "/users/{str:user}/following"},
-	{Method: "GET", Pattern: "/user/following"},
 	{Method: "GET", Pattern: "/user/following/{str:user}"},
 	{Method: "GET", Pattern: "/users/{str:user}/following/{str:target_user}"},
 	{Method: "PUT", Pattern: "/user/following/{str:user}"},
 	{Method: "DELETE", Pattern: "/user/following/{str:user}"},
 	{Method: "GET", Pattern: "/users/{str:user}/keys"},
-	{Method: "GET", Pattern: "/user/keys"},
 	{Method: "GET", Pattern: "/user/keys/{int:id}"},
-	{Method: "POST", Pattern: "/user/keys"},
 	{Method: "PATCH", Pattern: "/user/keys/{int:id}"},
 	{Method: "DELETE", Pattern: "/user/keys/{int:id}"},
+}
+
+// http://developer.github.com/v3/
+var githubAPI = make([]yac.Route, 0, len(githubStaticAPI)+len(githubDynamicAPI))
+
+// Initialize full GitHub API
+func init() {
+	githubAPI = append(githubAPI, githubStaticAPI...)
+	githubAPI = append(githubAPI, githubDynamicAPI...)
 }
 
 // Empty handler to return 200 for resolved routes.
