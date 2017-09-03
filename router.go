@@ -9,13 +9,9 @@ import (
 	"strings"
 )
 
-// Helpers for simpler usage
-type Pattern string
-type Method string
-
 type Route struct {
-	Method  Method
-	Pattern Pattern
+	Method  string
+	Pattern string
 	Handler http.HandlerFunc
 
 	matcher *regexp.Regexp
@@ -52,7 +48,7 @@ func (r *Router) AddWrappers(wrappers ...WrapperFunc) {
 }
 
 // Add generic route to routes.
-func (r *Router) Route(pattern Pattern, method Method, handler http.HandlerFunc) error {
+func (r *Router) Route(pattern string, method string, handler http.HandlerFunc) error {
 	re, err := regexp.Compile(convertSimplePatternToRegexp(pattern))
 	if err != nil {
 		return fmt.Errorf("can not compile pattern: %v", err)
@@ -73,12 +69,12 @@ func (r *Router) Route(pattern Pattern, method Method, handler http.HandlerFunc)
 }
 
 // Adds Get handler
-func (r *Router) Get(pattern Pattern, handler http.HandlerFunc) error {
+func (r *Router) Get(pattern string, handler http.HandlerFunc) error {
 	return r.Route(pattern, http.MethodGet, handler)
 }
 
 // Adds Post handler
-func (r *Router) Post(pattern Pattern, handler http.HandlerFunc) error {
+func (r *Router) Post(pattern string, handler http.HandlerFunc) error {
 	return r.Route(pattern, http.MethodPost, handler)
 }
 
@@ -104,7 +100,7 @@ func (r *Router) handleRequest(w http.ResponseWriter, req *http.Request, path st
 	for _, route := range r.routes {
 		if route.matcher.MatchString(path) {
 			pathFound = true
-			if route.Method == Method(req.Method) {
+			if route.Method == req.Method {
 				params, err := newParams(req, route.matcher, path)
 				if err != nil {
 					w.WriteHeader(http.StatusBadRequest)

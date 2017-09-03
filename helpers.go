@@ -10,14 +10,15 @@ import (
 
 // Supported types
 const stringType = `(?P<%s>[[:alnum:]]+)`
-const hexType = `(?P<%s>[[:xdigit:]]{24})`
+const hexType = `(?P<%s>[[:xdigit:]]+)`
+const oidType = `(?P<%s>[[:xdigit:]]{24})`
 const intType = `(?P<%s>[[:digit:]]+)`
 
-var paramRegexp = regexp.MustCompile(`{((str|hex|int):)??((?:[[:lower:]]|_)+)}`)
+var paramRegexp = regexp.MustCompile(`{((str|hex|oid|int):)??((?:[[:lower:]]|_)+)}`)
 
 // Converts patterns like "/users/id:hex" to real regexps
-func convertSimplePatternToRegexp(pattern Pattern) string {
-	patternWithParams := paramRegexp.ReplaceAllStringFunc(string(pattern), func(param string) string {
+func convertSimplePatternToRegexp(pattern string) string {
+	patternWithParams := paramRegexp.ReplaceAllStringFunc(pattern, func(param string) string {
 		trimmedParam := strings.Trim(param, "{}")
 		if !strings.Contains(trimmedParam, ":") {
 			return fmt.Sprintf(stringType, trimmedParam)
@@ -44,6 +45,8 @@ func convertSimplePatternToRegexp(pattern Pattern) string {
 
 func getPatternByType(name string) (string, error) {
 	switch name {
+	case "oid":
+		return oidType, nil
 	case "hex":
 		return hexType, nil
 	case "int":
