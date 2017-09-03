@@ -4,13 +4,13 @@ import "testing"
 
 var githubGists = []route{
 	{method: "GET", pattern: "/gists",
-		path: "/gists"},
+		path: "/gists", params: `{}`},
 	{method: "GET", pattern: "/gists/public",
-		path: "/gists/public"},
+		path: "/gists/public", params: `{}`},
 	{method: "GET", pattern: "/gists/starred",
-		path: "/gists/starred"},
+		path: "/gists/starred", params: `{}`},
 	{method: "POST", pattern: "/gists",
-		path: "/gists"},
+		path: "/gists", params: `{}`},
 	{method: "GET", pattern: "/users/{str:user}/gists",
 		path: "/users/test/gists", params: `{"user": "test"}`},
 	{method: "GET", pattern: "/gists/{int:id}",

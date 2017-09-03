@@ -4,9 +4,9 @@ import "testing"
 
 var githubOrganizations = []route{
 	{method: "GET", pattern: "/user/orgs",
-		path: "/user/orgs"},
+		path: "/user/orgs", params: `{}`},
 	{method: "GET", pattern: "/user/teams",
-		path: "/user/teams"},
+		path: "/user/teams", params: `{}`},
 	{method: "GET", pattern: "/users/{str:user}/orgs",
 		path: "/users/test/orgs", params: `{"user":"test"}`},
 	{method: "GET", pattern: "/orgs/{str:org}",

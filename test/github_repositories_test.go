@@ -4,11 +4,11 @@ import "testing"
 
 var githubRepositories = []route{
 	{method: "GET", pattern: "/user/repos",
-		path: "/user/repos"},
+		path: "/user/repos", params: `{}`},
 	{method: "GET", pattern: "/repositories",
-		path: "/repositories"},
+		path: "/repositories", params: `{}`},
 	{method: "POST", pattern: "/user/repos",
-		path: "/user/repos"},
+		path: "/user/repos", params: `{}`},
 	{method: "GET", pattern: "/users/{str:user}/repos",
 		path: "/users/test/repos", params: `{"user":"test"}`},
 	{method: "GET", pattern: "/orgs/{str:org}/repos",

@@ -6,9 +6,9 @@ import (
 
 var githubIssues = []route{
 	{method: "GET", pattern: "/issues",
-		path: "/issues"},
+		path: "/issues", params:`{}`},
 	{method: "GET", pattern: "/user/issues",
-		path: "/user/issues"},
+		path: "/user/issues", params:`{}`},
 	{method: "GET", pattern: "/orgs/{str:org}/issues",
 		path: "/orgs/test/issues", params: `{"org":"test"}`},
 	{method: "GET", pattern: "/repos/{str:owner}/{str:repo}/issues",

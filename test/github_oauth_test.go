@@ -4,9 +4,9 @@ import "testing"
 
 var githubOauth = []route{
 	{method: "GET", pattern: "/authorizations",
-		path: "/authorizations"},
+		path: "/authorizations", params: `{}`},
 	{method: "POST", pattern: "/authorizations",
-		path: "/authorizations"},
+		path: "/authorizations", params: `{}`},
 	{method: "GET", pattern: "/authorizations/{int:id}",
 		path: "/authorizations/123", params: `{"id": "123"}`},
 	{method: "PATCH", pattern: "/authorizations/{int:id}",

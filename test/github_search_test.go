@@ -4,13 +4,13 @@ import "testing"
 
 var githubSearch = []route{
 	{method: "GET", pattern: "/search/repositories",
-		path: "/search/repositories"},
+		path: "/search/repositories", params: `{}`},
 	{method: "GET", pattern: "/search/code",
-		path: "/search/code"},
+		path: "/search/code", params: `{}`},
 	{method: "GET", pattern: "/search/issues",
-		path: "/search/issues"},
+		path: "/search/issues", params: `{}`},
 	{method: "GET", pattern: "/search/users",
-		path: "/search/users"},
+		path: "/search/users", params: `{}`},
 }
 
 // Tests that all 'search' API routes resolves correctly
