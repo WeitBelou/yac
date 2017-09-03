@@ -2,21 +2,10 @@ package yac
 
 import (
 	"net/http"
-	"net/http/httptest"
 	"testing"
-
-	"github.com/weitbelou/yac"
 )
 
-type routeTestCase struct {
-	method  string
-	pattern string
-
-	path       string
-	pathParams map[string]string
-}
-
-var githubAPIStatic = []routeTestCase{
+var githubStatic = []routeTestCase{
 	// OAuth Authorizations
 	{method: "GET", pattern: "/authorizations"},
 	{method: "POST", pattern: "/authorizations"},
@@ -75,7 +64,7 @@ var githubAPIStatic = []routeTestCase{
 	{method: "POST", pattern: "/user/keys"},
 }
 
-var githubAPIDynamic = []routeTestCase{
+var githubDynamic = []routeTestCase{
 	// OAuth Authorizations
 	{method: "GET", pattern: "/authorizations/{int:id}"},
 	{method: "PUT", pattern: "/authorizations/clients/{int:client_id}"},
@@ -300,39 +289,50 @@ var githubAPIDynamic = []routeTestCase{
 }
 
 // http://developer.github.com/v3/
-var githubAPI = make([]routeTestCase, 0, len(githubAPIStatic)+len(githubAPIDynamic))
+var githubAPI = make([]routeTestCase, 0, len(githubStatic)+len(githubDynamic))
 
 // Initialize full GitHub API
 func init() {
-	githubAPI = append(githubAPI, githubAPIStatic...)
-	githubAPI = append(githubAPI, githubAPIDynamic...)
+	githubAPI = append(githubAPI, githubStatic...)
+	githubAPI = append(githubAPI, githubDynamic...)
 }
 
 // Empty handler to return 200 for resolved routes.
 func emptyHandler(_ http.ResponseWriter, _ *http.Request) {}
 
-// Check that all routes resolved correctly
-func TestGitHubResolveStatic(t *testing.T) {
-	router, err := yac.NewRouter("")
+// Tests that all static API routes resolves correctly
+func TestGitHubStatic(t *testing.T) {
+	router, err := createRouter(githubStatic, emptyHandler)
 	if err != nil {
 		t.Fatalf("can not create router: %v", err)
 	}
 
-	for _, route := range githubAPIStatic {
-		if err := router.Route(route.pattern, route.method, emptyHandler); err != nil {
-			t.Fatalf("can not init route '%+v': %v", route, err)
-		}
-	}
+	req, w := createRequestResponse()
 
-	for _, route := range githubAPIStatic {
-		req := httptest.NewRequest(route.method, route.pattern, nil)
-		w := httptest.NewRecorder()
-
+	for _, route := range githubStatic {
+		resetRequestResponse(req, w, route.method, route.pattern)
 		router.ServeHTTP(w, req)
 
 		if w.Code != http.StatusOK {
 			t.Errorf("can not resolve route '%+v'", route)
 		}
+	}
+}
 
+// Bench for static API resolving
+func BenchmarkGithubStatic(b *testing.B) {
+	router, err := createRouter(githubStatic, emptyHandler)
+	if err != nil {
+		b.Fatalf("can not create router: %v", err)
+	}
+
+	req, w := createRequestResponse()
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		for _, route := range githubStatic {
+			resetRequestResponse(req, w, route.method, route.pattern)
+			router.ServeHTTP(w, req)
+		}
 	}
 }
