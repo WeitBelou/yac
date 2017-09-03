@@ -2,9 +2,8 @@ package yac
 
 import (
 	"net/http"
-	"testing"
-
 	"net/http/httptest"
+	"testing"
 
 	"github.com/weitbelou/yac"
 )
@@ -17,7 +16,7 @@ type routeTestCase struct {
 	pathParams map[string]string
 }
 
-var githubStaticAPI = []routeTestCase{
+var githubAPIStatic = []routeTestCase{
 	// OAuth Authorizations
 	{method: "GET", pattern: "/authorizations"},
 	{method: "POST", pattern: "/authorizations"},
@@ -76,7 +75,7 @@ var githubStaticAPI = []routeTestCase{
 	{method: "POST", pattern: "/user/keys"},
 }
 
-var githubDynamicAPI = []routeTestCase{
+var githubAPIDynamic = []routeTestCase{
 	// OAuth Authorizations
 	{method: "GET", pattern: "/authorizations/{int:id}"},
 	{method: "PUT", pattern: "/authorizations/clients/{int:client_id}"},
@@ -301,32 +300,32 @@ var githubDynamicAPI = []routeTestCase{
 }
 
 // http://developer.github.com/v3/
-var githubAPI = make([]routeTestCase, 0, len(githubStaticAPI)+len(githubDynamicAPI))
+var githubAPI = make([]routeTestCase, 0, len(githubAPIStatic)+len(githubAPIDynamic))
 
 // Initialize full GitHub API
 func init() {
-	githubAPI = append(githubAPI, githubStaticAPI...)
-	githubAPI = append(githubAPI, githubDynamicAPI...)
+	githubAPI = append(githubAPI, githubAPIStatic...)
+	githubAPI = append(githubAPI, githubAPIDynamic...)
 }
 
 // Empty handler to return 200 for resolved routes.
 func emptyHandler(_ http.ResponseWriter, _ *http.Request) {}
 
 // Check that all routes resolved correctly
-func TestGitHubResolve(t *testing.T) {
+func TestGitHubResolveStatic(t *testing.T) {
 	router, err := yac.NewRouter("")
 	if err != nil {
 		t.Fatalf("can not create router: %v", err)
 	}
 
-	for _, route := range githubAPI {
+	for _, route := range githubAPIStatic {
 		if err := router.Route(route.pattern, route.method, emptyHandler); err != nil {
 			t.Fatalf("can not init route '%+v': %v", route, err)
 		}
 	}
 
-	for _, route := range githubAPI {
-		req := httptest.NewRequest(string(route.method), string(route.pattern), nil)
+	for _, route := range githubAPIStatic {
+		req := httptest.NewRequest(route.method, route.pattern, nil)
 		w := httptest.NewRecorder()
 
 		router.ServeHTTP(w, req)
