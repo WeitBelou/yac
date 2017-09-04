@@ -44,7 +44,7 @@ func createRouter(routes []route, handler http.HandlerFunc) (http.Handler, error
 	router := yac.NewRouter()
 
 	for _, route := range routes {
-		if err := router.Route(route.pattern, route.method, handler); err != nil {
+		if err := router.Route(yac.Route{Method: route.method, Pattern: route.pattern, Handler: handler}); err != nil {
 			return nil, fmt.Errorf("can not init route '%+v': %v", route, err)
 		}
 	}

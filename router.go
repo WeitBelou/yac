@@ -16,10 +16,10 @@ type Route struct {
 	matcher *regexp.Regexp
 }
 
-// Structure that stores supported methods for each route.
+// Helper for slice of routes
 type Routes []Route
 
-// Returns new router with root path == rootPath
+// Returns new router
 func NewRouter() *Router {
 	return &Router{routes: make(Routes, 0)}
 }
@@ -31,26 +31,27 @@ type Router struct {
 }
 
 // Add wrappers to router
+// Wrappers will be applied to handler function of every route.
 func (r *Router) AddWrappers(wrappers ...WrapperFunc) {
 	r.wrappers = append(r.wrappers, wrappers...)
 }
 
-// Add generic route to routes.
-func (r *Router) Route(pattern string, method string, handler http.HandlerFunc) error {
-	re, err := regexp.Compile(convertSimplePatternToRegexp(pattern))
+// Add new route to routes.
+func (r *Router) Route(route Route) error {
+	re, err := regexp.Compile(convertSimplePatternToRegexp(route.Pattern))
 	if err != nil {
 		return fmt.Errorf("can not compile pattern: %v", err)
 	}
 
-	for _, route := range r.routes {
-		if route.Method == method && route.Pattern == pattern {
+	for _, rt := range r.routes {
+		if rt.Method == route.Method && rt.Pattern == route.Pattern {
 			return fmt.Errorf("route already exists")
 		}
 	}
 
 	r.routes = append(r.routes, Route{
-		Pattern: pattern, Method: method,
-		Handler: Wrap(handler, r.wrappers...), matcher: re,
+		Pattern: route.Pattern, Method: route.Method,
+		Handler: Wrap(route.Handler, r.wrappers...), matcher: re,
 	})
 
 	return nil
@@ -58,12 +59,12 @@ func (r *Router) Route(pattern string, method string, handler http.HandlerFunc) 
 
 // Adds Get handler
 func (r *Router) Get(pattern string, handler http.HandlerFunc) error {
-	return r.Route(pattern, http.MethodGet, handler)
+	return r.Route(Route{Method: http.MethodGet, Pattern: pattern, Handler: handler})
 }
 
 // Adds Post handler
 func (r *Router) Post(pattern string, handler http.HandlerFunc) error {
-	return r.Route(pattern, http.MethodPost, handler)
+	return r.Route(Route{Method: http.MethodPost, Pattern: pattern, Handler: handler})
 }
 
 // Listen on given port
