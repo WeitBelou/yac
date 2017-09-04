@@ -9,10 +9,10 @@ import (
 )
 
 // Supported types
-const stringType = `(?P<%s>[[:alnum:]]+)`
-const hexType = `(?P<%s>[[:xdigit:]]+)`
+const stringType = `(?P<%s>[[:alnum:]]+?)`
+const hexType = `(?P<%s>[[:xdigit:]]+?)`
 const oidType = `(?P<%s>[[:xdigit:]]{24})`
-const intType = `(?P<%s>[[:digit:]]+)`
+const intType = `(?P<%s>[[:digit:]]+?)`
 
 var paramRegexp = regexp.MustCompile(`{((str|hex|oid|int):)??((?:[[:lower:]]|_)+)}`)
 

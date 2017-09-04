@@ -5,6 +5,8 @@ import (
 	"regexp"
 	"testing"
 
+	"encoding/json"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -40,4 +42,27 @@ func TestRelativePath(t *testing.T) {
 	if relPath != "/users/1234feabc1357346781234524" {
 		t.Fail()
 	}
+}
+
+func TestPatternConversion(t *testing.T) {
+	pattern := "/repos/{str:owner}/{str:repo}/issues/comments"
+	re := convertSimplePatternToRegexp(pattern)
+	assert.Equal(t, `^/repos/(?P<owner>[[:alnum:]]+)/(?P<repo>[[:alnum:]]+)/issues/comments/?$`, re)
+}
+
+func TestExtractParams(t *testing.T) {
+	path := "/repos/owner/repo/issues/comments"
+	pattern := regexp.MustCompile(`^/repos/(?P<owner>[[:alnum:]]+)/(?P<repo>[[:alnum:]]+)/issues/comments/?$`)
+	params := extractPathParams(pattern, path)
+
+	js, err := json.Marshal(params)
+	assert.Nil(t, err, "can not marshal params: %v", err)
+
+	assert.JSONEq(t, `{"owner":"owner","repo":"repo"}`, string(js))
+}
+
+func TestPatternMatching(t *testing.T) {
+	pattern := regexp.MustCompile(`^/user/subscriptions/(?P<owner>[[:alnum:]]+?)/(?P<repo>[[:alnum:]]+?)/?$`)
+	path := `/events`
+	assert.NotRegexp(t, pattern, path)
 }

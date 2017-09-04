@@ -7,6 +7,10 @@ import (
 	"net/http"
 	"net/http/httptest"
 
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/weitbelou/yac"
 )
 
@@ -17,10 +21,13 @@ type route struct {
 	params  string // As json
 }
 
+func (r route) String() string {
+	return fmt.Sprintf("\t%s\n\t%s\n\t%s", r.method, r.pattern, r.path)
+}
+
 // Creates empty request and response writer
 func createRequestResponse() (*http.Request, *httptest.ResponseRecorder) {
 	return httptest.NewRequest("", "/", nil), httptest.NewRecorder()
-
 }
 
 // Resets request and response to new method and path
@@ -67,4 +74,49 @@ func paramsHandler(w http.ResponseWriter, req *http.Request) {
 	}
 
 	w.Write(js)
+}
+
+// Helper for 'resolve' tests
+func testResolve(t *testing.T, routes []route) {
+	router, err := createRouter(routes, emptyHandler)
+	require.Nil(t, err, "can not create router: %v", err)
+
+	req, w := createRequestResponse()
+
+	for _, route := range routes {
+		resetRequestResponse(req, w, route.method, route.path)
+		router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusOK, w.Code, "can not resolve route %s", route)
+	}
+}
+
+// Helper for 'resolve' benchmarks
+func benchResolve(b *testing.B, routes []route) {
+	router, err := createRouter(routes, emptyHandler)
+	require.Nil(b, err, "can not create router: %v", err)
+
+	req, w := createRequestResponse()
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		for _, route := range routes {
+			resetRequestResponse(req, w, route.method, route.path)
+			router.ServeHTTP(w, req)
+		}
+	}
+}
+
+// Helper for 'params' tests
+func testParams(t *testing.T, routes []route) {
+	router, err := createRouter(routes, paramsHandler)
+	require.Nil(t, err, "can not create router: %v", err)
+
+	req, w := createRequestResponse()
+	for _, route := range routes {
+		resetRequestResponse(req, w, route.method, route.path)
+		router.ServeHTTP(w, req)
+
+		assert.JSONEq(t, route.params, w.Body.String(),
+			"invalid params for \n%s", route)
+	}
 }
