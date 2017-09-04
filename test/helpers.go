@@ -41,10 +41,7 @@ func resetRequestResponse(req *http.Request, w *httptest.ResponseRecorder, metho
 
 // Initialize router with list of routes
 func createRouter(routes []route, handler http.HandlerFunc) (http.Handler, error) {
-	router, err := yac.NewRouter("")
-	if err != nil {
-		return nil, fmt.Errorf("can not create router: %v", err)
-	}
+	router := yac.NewRouter()
 
 	for _, route := range routes {
 		if err := router.Route(route.pattern, route.method, handler); err != nil {

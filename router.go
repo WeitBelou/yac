@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"net/url"
 	"regexp"
 	"strings"
 )
@@ -21,22 +20,11 @@ type Route struct {
 type Routes []Route
 
 // Returns new router with root path == rootPath
-func NewRouter(root string) (*Router, error) {
-	r := &Router{routes: make(Routes, 0)}
-
-	newRoot, err := url.Parse(root)
-	if err != nil {
-		return nil, fmt.Errorf("invalid path format %s: %v", root, err)
-	}
-
-	r.root = newRoot
-
-	return r, nil
+func NewRouter() *Router {
+	return &Router{routes: make(Routes, 0)}
 }
 
 type Router struct {
-	root *url.URL
-
 	routes Routes
 
 	wrappers []WrapperFunc
@@ -85,20 +73,16 @@ func (r *Router) ListenAndServe(port string) error {
 
 // Implements http.Handler interface
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	relPath, err := relativePath(r.root.Path, req.URL.Path)
-	if err != nil {
-		http.NotFound(w, req)
-	}
-
-	r.handleRequest(w, req, relPath)
+	r.handleRequest(w, req)
 }
 
 // Handles request: iterate over all routes before finds first matching route.
-func (r *Router) handleRequest(w http.ResponseWriter, req *http.Request, path string) {
+func (r *Router) handleRequest(w http.ResponseWriter, req *http.Request) {
 	var pathFound bool
 
 	var matched Route
 
+	path := req.URL.Path
 	for _, route := range r.routes {
 		if route.matcher.MatchString(path) {
 			pathFound = true
