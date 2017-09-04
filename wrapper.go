@@ -51,3 +51,18 @@ func patternCompiler(route Route) Route {
 		matcher: re,
 	}
 }
+
+// Inserts params into request's context
+func paramsInserter(route Route) Route {
+	newRoute := route
+	newRoute.Handler = func(w http.ResponseWriter, req *http.Request) {
+		params, err := newParams(req, route.matcher, req.URL.Path)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		route.Handler(w, putParamsToRequest(req, params))
+	}
+	return newRoute
+}

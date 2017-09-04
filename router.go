@@ -21,6 +21,12 @@ func (r Route) Same(o Route) bool {
 	return (r.Method == o.Method) && (r.Pattern == o.Pattern)
 }
 
+// Returns true if this route's matcher 'simpler' than other: matcher has less named subexpression
+// If 'o' doesn't contain matcher (i.e. empty Route) than current considered to be simple
+func (r Route) Simpler(o Route) bool {
+	return o.matcher == nil || len(r.matcher.SubexpNames()) < len(o.matcher.SubexpNames())
+}
+
 // Helper for slice of routes
 type Routes []Route
 
@@ -28,7 +34,7 @@ type Routes []Route
 func NewRouter() *Router {
 	return &Router{
 		routes:   make(Routes, 0),
-		wrappers: Wrappers{patternCompiler},
+		wrappers: Wrappers{patternCompiler, paramsInserter},
 	}
 }
 
@@ -87,7 +93,7 @@ func (r *Router) handleRequest(w http.ResponseWriter, req *http.Request) {
 		if route.matcher.MatchString(path) {
 			pathFound = true
 			if route.Method == req.Method {
-				if matched.matcher == nil || len(route.matcher.SubexpNames()) <= len(matched.matcher.SubexpNames()) {
+				if route.Simpler(matched) {
 					matched = route
 				}
 			}
@@ -95,13 +101,7 @@ func (r *Router) handleRequest(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if matched.Handler != nil {
-		params, err := newParams(req, matched.matcher, path)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-
-		matched.Handler(w, putParamsToRequest(req, params))
+		matched.Handler(w, req)
 		return
 	}
 
