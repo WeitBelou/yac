@@ -4,31 +4,14 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"regexp"
 	"strings"
 )
 
-type Route struct {
-	Method  string
-	Pattern string
-	Handler http.HandlerFunc
+type Router struct {
+	routes Routes
 
-	matcher *regexp.Regexp
+	wrappers Wrappers
 }
-
-// Checks if router the same: method and pattern equal
-func (r Route) Same(o Route) bool {
-	return (r.Method == o.Method) && (r.Pattern == o.Pattern)
-}
-
-// Returns true if this route's matcher 'simpler' than other: matcher has less named subexpression
-// If 'o' doesn't contain matcher (i.e. empty Route) than current considered to be simple
-func (r Route) Simpler(o Route) bool {
-	return o.matcher == nil || len(r.matcher.SubexpNames()) < len(o.matcher.SubexpNames())
-}
-
-// Helper for slice of routes
-type Routes []Route
 
 // Returns new router
 func NewRouter() *Router {
@@ -36,12 +19,6 @@ func NewRouter() *Router {
 		routes:   make(Routes, 0),
 		wrappers: Wrappers{patternCompiler, paramsInserter},
 	}
-}
-
-type Router struct {
-	routes Routes
-
-	wrappers Wrappers
 }
 
 // Add wrappers to router
