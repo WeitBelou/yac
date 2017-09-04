@@ -4,66 +4,49 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"regexp"
 	"strings"
 )
-
-type Route struct {
-	Method  string
-	Pattern string
-	Handler http.HandlerFunc
-
-	matcher *regexp.Regexp
-}
-
-// Structure that stores supported methods for each route.
-type Routes []Route
-
-// Returns new router with root path == rootPath
-func NewRouter() *Router {
-	return &Router{routes: make(Routes, 0)}
-}
 
 type Router struct {
 	routes Routes
 
-	wrappers []WrapperFunc
+	wrappers Wrappers
+}
+
+// Returns new router
+func NewRouter() *Router {
+	return &Router{
+		routes:   make(Routes, 0),
+		wrappers: Wrappers{patternCompiler, paramsInserter},
+	}
 }
 
 // Add wrappers to router
-func (r *Router) AddWrappers(wrappers ...WrapperFunc) {
+// Wrappers will be applied to handler function of every route.
+func (r *Router) AddWrappers(wrappers ...Wrapper) {
 	r.wrappers = append(r.wrappers, wrappers...)
 }
 
-// Add generic route to routes.
-func (r *Router) Route(pattern string, method string, handler http.HandlerFunc) error {
-	re, err := regexp.Compile(convertSimplePatternToRegexp(pattern))
-	if err != nil {
-		return fmt.Errorf("can not compile pattern: %v", err)
-	}
-
-	for _, route := range r.routes {
-		if route.Method == method && route.Pattern == pattern {
+// Add new route to routes.
+func (r *Router) Route(route Route) error {
+	for _, rt := range r.routes {
+		if rt.Same(route) {
 			return fmt.Errorf("route already exists")
 		}
 	}
 
-	r.routes = append(r.routes, Route{
-		Pattern: pattern, Method: method,
-		Handler: Wrap(handler, r.wrappers...), matcher: re,
-	})
-
+	r.routes = append(r.routes, r.wrappers.Wrap(route))
 	return nil
 }
 
 // Adds Get handler
 func (r *Router) Get(pattern string, handler http.HandlerFunc) error {
-	return r.Route(pattern, http.MethodGet, handler)
+	return r.Route(Route{Method: http.MethodGet, Pattern: pattern, Handler: handler})
 }
 
 // Adds Post handler
 func (r *Router) Post(pattern string, handler http.HandlerFunc) error {
-	return r.Route(pattern, http.MethodPost, handler)
+	return r.Route(Route{Method: http.MethodPost, Pattern: pattern, Handler: handler})
 }
 
 // Listen on given port
@@ -87,7 +70,7 @@ func (r *Router) handleRequest(w http.ResponseWriter, req *http.Request) {
 		if route.matcher.MatchString(path) {
 			pathFound = true
 			if route.Method == req.Method {
-				if matched.matcher == nil || len(route.matcher.SubexpNames()) <= len(matched.matcher.SubexpNames()) {
+				if route.Simpler(matched) {
 					matched = route
 				}
 			}
@@ -95,13 +78,7 @@ func (r *Router) handleRequest(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if matched.Handler != nil {
-		params, err := newParams(req, matched.matcher, path)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-
-		matched.Handler(w, putParamsToRequest(req, params))
+		matched.Handler(w, req)
 		return
 	}
 
