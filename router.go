@@ -16,44 +16,43 @@ type Route struct {
 	matcher *regexp.Regexp
 }
 
+// Checks if router the same: method and pattern equal
+func (r Route) Same(o Route) bool {
+	return (r.Method == o.Method) && (r.Pattern == o.Pattern)
+}
+
 // Helper for slice of routes
 type Routes []Route
 
 // Returns new router
 func NewRouter() *Router {
-	return &Router{routes: make(Routes, 0)}
+	return &Router{
+		routes:   make(Routes, 0),
+		wrappers: Wrappers{patternCompiler},
+	}
 }
 
 type Router struct {
 	routes Routes
 
-	wrappers []WrapperFunc
+	wrappers Wrappers
 }
 
 // Add wrappers to router
 // Wrappers will be applied to handler function of every route.
-func (r *Router) AddWrappers(wrappers ...WrapperFunc) {
+func (r *Router) AddWrappers(wrappers ...Wrapper) {
 	r.wrappers = append(r.wrappers, wrappers...)
 }
 
 // Add new route to routes.
 func (r *Router) Route(route Route) error {
-	re, err := regexp.Compile(convertSimplePatternToRegexp(route.Pattern))
-	if err != nil {
-		return fmt.Errorf("can not compile pattern: %v", err)
-	}
-
 	for _, rt := range r.routes {
-		if rt.Method == route.Method && rt.Pattern == route.Pattern {
+		if rt.Same(route) {
 			return fmt.Errorf("route already exists")
 		}
 	}
 
-	r.routes = append(r.routes, Route{
-		Pattern: route.Pattern, Method: route.Method,
-		Handler: Wrap(route.Handler, r.wrappers...), matcher: re,
-	})
-
+	r.routes = append(r.routes, r.wrappers.Wrap(route))
 	return nil
 }
 

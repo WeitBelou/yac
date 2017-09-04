@@ -3,30 +3,51 @@ package yac
 import (
 	"log"
 	"net/http"
+	"regexp"
 	"time"
 )
 
-type WrapperFunc func(handlerFunc http.HandlerFunc) http.HandlerFunc
+// Wrapper that takes route and returns modified route
+type Wrapper func(route Route) Route
 
-// Wraps handler func with slice of wrapper functions one by one.
-func Wrap(h http.HandlerFunc, wrappers ...WrapperFunc) http.HandlerFunc {
-	for _, w := range wrappers {
-		h = w(h)
+// Helper for wrappers slice
+type Wrappers []Wrapper
+
+// Wraps route with slice of wrappers
+func (ws Wrappers) Wrap(r Route) Route {
+	for _, w := range ws {
+		r = w(r)
 	}
-	return h
+	return r
 }
 
 // Logs requests
-func Logger(h http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func Logger(r Route) Route {
+	r.Handler = func(w http.ResponseWriter, req *http.Request) {
 		start := time.Now()
 		defer log.Printf(
 			"%s\t%s\t%s",
-			r.Method,
-			r.RequestURI,
+			req.Method,
+			req.RequestURI,
 			time.Since(start),
 		)
 
-		h(w, r)
+		r.Handler(w, req)
+	}
+	return r
+}
+
+// Compiles pattern of route
+func patternCompiler(route Route) Route {
+	re, err := regexp.Compile(convertSimplePatternToRegexp(route.Pattern))
+	if err != nil {
+		log.Panicf("can not compile pattern: %v", err)
+	}
+
+	return Route{
+		Method:  route.Method,
+		Pattern: route.Pattern,
+		Handler: route.Handler,
+		matcher: re,
 	}
 }
