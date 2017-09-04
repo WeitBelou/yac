@@ -97,21 +97,20 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 func (r *Router) handleRequest(w http.ResponseWriter, req *http.Request, path string) {
 	var pathFound bool
 
-	var matched *Route
+	var matched Route
 
 	for _, route := range r.routes {
-		// TODO: Here something very strange: occasionally route matches wrong path.
 		if route.matcher.MatchString(path) {
 			pathFound = true
 			if route.Method == req.Method {
-				if matched == nil || len(route.matcher.SubexpNames()) <= len(matched.matcher.SubexpNames()) {
-					matched = &route
+				if matched.matcher == nil || len(route.matcher.SubexpNames()) <= len(matched.matcher.SubexpNames()) {
+					matched = route
 				}
 			}
 		}
 	}
 
-	if matched != nil {
+	if matched.Handler != nil {
 		params, err := newParams(req, matched.matcher, path)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
