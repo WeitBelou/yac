@@ -2,9 +2,7 @@ package yac
 
 import (
 	"fmt"
-	"log"
 	"net/http"
-	"strings"
 )
 
 type Router struct {
@@ -16,8 +14,8 @@ type Router struct {
 // Returns new router
 func NewRouter() *Router {
 	return &Router{
-		routes:   make(Routes, 0),
-		wrappers: Wrappers{patternCompiler, paramsInserter},
+		routes:   NewRoutes(),
+		wrappers: Wrappers{},
 	}
 }
 
@@ -28,25 +26,18 @@ func (r *Router) AddWrappers(wrappers ...Wrapper) {
 }
 
 // Add new route to routes.
-func (r *Router) Route(route Route) error {
-	for _, rt := range r.routes {
-		if rt.Same(route) {
-			return fmt.Errorf("route already exists")
-		}
-	}
-
-	r.routes = append(r.routes, r.wrappers.Wrap(route))
-	return nil
+func (r *Router) Route(pattern, method string, h http.HandlerFunc) error {
+	return r.routes.Insert(pattern, method, h)
 }
 
 // Adds Get handler
 func (r *Router) Get(pattern string, handler http.HandlerFunc) error {
-	return r.Route(Route{Method: http.MethodGet, Pattern: pattern, Handler: handler})
+	return r.Route(pattern, http.MethodGet, handler)
 }
 
 // Adds Post handler
 func (r *Router) Post(pattern string, handler http.HandlerFunc) error {
-	return r.Route(Route{Method: http.MethodPost, Pattern: pattern, Handler: handler})
+	return r.Route(pattern, http.MethodPost, handler)
 }
 
 // Listen on given port
@@ -61,44 +52,10 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 // Handles request: iterate over all routes before finds first matching route.
 func (r *Router) handleRequest(w http.ResponseWriter, req *http.Request) {
-	var pathFound bool
-
-	var matched Route
-
-	path := req.URL.Path
-	for _, route := range r.routes {
-		if route.matcher.MatchString(path) {
-			pathFound = true
-			if route.Method == req.Method {
-				if route.Simpler(matched) {
-					matched = route
-				}
-			}
-		}
-	}
-
-	if matched.Handler != nil {
-		matched.Handler(w, req)
-		return
-	}
-
-	if pathFound {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		fmt.Fprintf(w, "method %s not allowed at path %s", req.Method, req.URL)
-		return
-	}
-
-	w.WriteHeader(http.StatusNotFound)
-	fmt.Fprintf(w, "path %s not found", req.URL)
+	pathNotFound(w, req)
 }
 
-// Pretty prints routes
-func (r *Router) PrintRoutes() {
-	log.Println(strings.Repeat("-", 10))
-
-	for _, route := range r.routes {
-		log.Printf("'%s': '%s'", route.Method, route.Pattern)
-	}
-
-	log.Println(strings.Repeat("-", 10))
+func pathNotFound(w http.ResponseWriter, req *http.Request) {
+	w.WriteHeader(http.StatusNotFound)
+	fmt.Fprintf(w, "path %s not found", req.URL)
 }
