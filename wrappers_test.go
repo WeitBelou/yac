@@ -7,9 +7,9 @@ import (
 )
 
 // Returns handler without any changes
-func emptyWrapper(h Handler) Handler {
+var emptyWrapper = WrapperFunc(func(h Handler) Handler {
 	return h
-}
+})
 
 func TestWrapper_Add(t *testing.T) {
 	ws := Wrappers{}
@@ -22,12 +22,8 @@ func TestWrappers_Wrap(t *testing.T) {
 	ws := Wrappers{}
 
 	ws = ws.Add(
-		func(h Handler) Handler {
-			return h
-		},
-		func(h Handler) Handler {
-			return h
-		},
+		emptyWrapper,
+		emptyWrapper,
 	)
 }
 
