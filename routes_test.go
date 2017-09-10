@@ -1,10 +1,13 @@
 package yac
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+var emptyHandlerFunc = HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {})
 
 func TestRoutes_Has_OnEmpty(t *testing.T) {
 	rs := NewRoutes()
@@ -16,7 +19,7 @@ func TestRoutes_Add_InEmpty(t *testing.T) {
 	method := "GET"
 
 	rs := NewRoutes()
-	rs.Add(pattern, method, emptyHandler)
+	rs.Add(pattern, method, emptyHandlerFunc)
 
 	assert.True(t, rs.Has(pattern, method))
 }
@@ -27,9 +30,9 @@ func TestRoutes_Add_Duplicated(t *testing.T) {
 
 	rs := NewRoutes()
 
-	err := rs.Add(pattern, method, emptyHandler)
+	err := rs.Add(pattern, method, emptyHandlerFunc)
 	assert.Nil(t, err, "can not insert route in empty routes: %v", err)
 
-	err = rs.Add(pattern, method, emptyHandler)
+	err = rs.Add(pattern, method, emptyHandlerFunc)
 	assert.NotNil(t, err, "can insert duplicated item")
 }

@@ -12,6 +12,12 @@ type Wrapper func(h Handler) Handler
 // Helper for wrappers slice
 type Wrappers []Wrapper
 
+// Returns new wrappers with "wrappers" added
+func (ws Wrappers) Add(wrappers ...Wrapper) Wrappers {
+	newWs := append(ws, wrappers...)
+	return newWs
+}
+
 // Wraps route with slice of wrappers
 func (ws Wrappers) Wrap(h Handler) Handler {
 	for _, w := range ws {
@@ -21,16 +27,16 @@ func (ws Wrappers) Wrap(h Handler) Handler {
 }
 
 // Logs requests
-func Logger(h Handler) Handler {
-	return func(w http.ResponseWriter, req *http.Request) {
+func Logger(logger log.Logger, h Handler) Handler {
+	return HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		start := time.Now()
-		defer log.Printf(
+		defer logger.Printf(
 			"%s\t%s\t%s",
 			req.Method,
 			req.RequestURI,
 			time.Since(start),
 		)
 
-		h(w, req)
-	}
+		h.ServeHTTP(w, req)
+	})
 }
