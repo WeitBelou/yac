@@ -14,7 +14,6 @@ type Router struct {
 // Returns new router
 func NewRouter() *Router {
 	return &Router{
-		routes:   NewRoutes(),
 		wrappers: Wrappers{},
 	}
 }
@@ -26,17 +25,17 @@ func (r *Router) AddWrappers(wrappers ...Wrapper) {
 }
 
 // Add new route to routes.
-func (r *Router) Route(pattern, method string, h http.HandlerFunc) error {
-	return r.routes.Insert(pattern, method, h)
+func (r *Router) Route(pattern, method string, h Handler) error {
+	return r.routes.Add(pattern, method, h)
 }
 
 // Adds Get handler
-func (r *Router) Get(pattern string, handler http.HandlerFunc) error {
-	return r.Route(pattern, http.MethodGet, handler)
+func (r *Router) Get(pattern string, h Handler) error {
+	return r.Route(pattern, http.MethodGet, h)
 }
 
 // Adds Post handler
-func (r *Router) Post(pattern string, handler http.HandlerFunc) error {
+func (r *Router) Post(pattern string, handler Handler) error {
 	return r.Route(pattern, http.MethodPost, handler)
 }
 
