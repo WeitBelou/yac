@@ -6,12 +6,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRoutesHasOnEmpty(t *testing.T) {
+func TestRoutes_Has_OnEmpty(t *testing.T) {
 	rs := NewRoutes()
 	assert.False(t, rs.Has("/users", "GET"), "can find route in empty routes")
 }
 
-func TestRoutesAdd(t *testing.T) {
+func TestRoutes_Add_InEmpty(t *testing.T) {
 	pattern := "/users"
 	method := "GET"
 
@@ -21,7 +21,7 @@ func TestRoutesAdd(t *testing.T) {
 	assert.True(t, rs.Has(pattern, method))
 }
 
-func TestRoutesAddDuplicated(t *testing.T) {
+func TestRoutes_Add_Duplicated(t *testing.T) {
 	pattern := "/users"
 	method := "GET"
 
