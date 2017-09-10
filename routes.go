@@ -2,20 +2,36 @@ package yac
 
 import "fmt"
 
-type Route map[string]Handler
+type Method string
+type Pattern string
 
-type Routes map[string]Route
+type Routes map[Pattern]map[Method]Handler
 
 func NewRoutes() Routes {
-	return make(map[string]Route)
+	return make(Routes)
 }
 
-func (r Routes) Add(pattern, method string, handler Handler) error {
+// Adds route to routes
+// Returns error if there is such route.
+//
+// See: Has(pattern, method)
+func (rs Routes) Add(pattern, method string, h Handler) error {
+	if rs.Has(pattern, method) {
+		return ErrRouteAlreadyExists{pattern: pattern, method: method}
+	}
+
+	if rs[Pattern(pattern)] == nil {
+		rs[Pattern(pattern)] = make(map[Method]Handler)
+	}
+
+	rs[Pattern(pattern)][Method(method)] = h
 	return nil
 }
 
-func (r Routes) Has(pattern, method string) bool {
-	return false
+// Checks if route in routes
+func (rs Routes) Has(pattern, method string) bool {
+	_, ok := rs[Pattern(pattern)][Method(method)]
+	return ok
 }
 
 type ErrRouteAlreadyExists struct {
