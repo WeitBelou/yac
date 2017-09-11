@@ -69,3 +69,14 @@ func TestRouterResolveMethodNotAllowed(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusMethodNotAllowed, w.Code, "shouldn't be found")
 }
+
+func TestRouterResponse(t *testing.T) {
+	router := createRouter(t, staticRoutes)
+
+	req := httptest.NewRequest(http.MethodGet, "/users", nil)
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, "users", w.Body.String(), "wrong response for 'GET' '/users'")
+}

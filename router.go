@@ -43,10 +43,13 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if !r.routes.Has(path, req.Method) {
+	handler, err := r.routes.Get(path, req.Method)
+	if err != nil {
 		methodNotAllowed(w)
 		return
 	}
+
+	handler.ServeHTTP(w, req)
 }
 
 // Default path not found response.

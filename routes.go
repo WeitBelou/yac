@@ -29,6 +29,16 @@ func (rs Routes) Add(pattern, method string, h Handler) error {
 	return nil
 }
 
+// Returns handler for 'pattern' 'method'
+// It's safe to ignore error if rs.Has() returns true
+func (rs Routes) Get(pattern, method string) (Handler, error) {
+	if !rs.Has(pattern, method) {
+		return nil, ErrRouteNotFound{pattern: pattern, method: method}
+	}
+
+	return rs[pattern][method], nil
+}
+
 // Checks if route in routes
 func (rs Routes) Has(pattern, method string) bool {
 	_, ok := rs[pattern][method]
@@ -48,4 +58,13 @@ type ErrRouteAlreadyExists struct {
 
 func (e ErrRouteAlreadyExists) Error() string {
 	return fmt.Sprintf("route with pattern '%s' and method '%s' already exists", e.pattern, e.method)
+}
+
+type ErrRouteNotFound struct {
+	pattern string
+	method  string
+}
+
+func (e ErrRouteNotFound) Error() string {
+	return fmt.Sprintf("route with pattern '%s' and method '%s' not found", e.pattern, e.method)
 }
