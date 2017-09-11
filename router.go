@@ -37,18 +37,26 @@ func (r *Router) ListenAndServe(port string) error {
 
 // Implements http.Handler interface
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	r.handleRequest(w, req)
-}
-
-// Handles request: iterate over all routes before finds first matching route.
-func (r *Router) handleRequest(w http.ResponseWriter, req *http.Request) {
-	if !r.routes.HasPattern(req.URL.Path) {
+	path := req.URL.Path
+	if !r.routes.HasPattern(path) {
 		pathNotFound(w)
+		return
+	}
+
+	if !r.routes.Has(path, req.Method) {
+		methodNotAllowed(w)
+		return
 	}
 }
 
 // Default path not found response.
 func pathNotFound(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusNotFound)
-	fmt.Fprint(w, "Not found!")
+	w.Write([]byte("Not found!"))
+}
+
+// Default method not found response
+func methodNotAllowed(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusMethodNotAllowed)
+	w.Write([]byte("Method not allowed!"))
 }
