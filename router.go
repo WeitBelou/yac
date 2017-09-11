@@ -44,21 +44,23 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	handler, err := r.routes.Get(path, req.Method)
-	if err != nil {
+	switch err.(type) {
+	case ErrPathNotFound:
+		pathNotFound(w)
+	case ErrMethodNotAllowed:
 		methodNotAllowed(w)
-		return
+	default:
+		handler.ServeHTTP(w, req)
 	}
-
-	handler.ServeHTTP(w, req)
 }
 
-// Default path not found response.
+// Default response for "path not found".
 func pathNotFound(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusNotFound)
 	w.Write([]byte("Not found!"))
 }
 
-// Default method not found response
+// Default response for "method not allowed"
 func methodNotAllowed(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusMethodNotAllowed)
 	w.Write([]byte("Method not allowed!"))

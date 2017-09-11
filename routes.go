@@ -30,13 +30,18 @@ func (rs Routes) Add(pattern, method string, h Handler) error {
 }
 
 // Returns handler for 'pattern' 'method'
-// It's safe to ignore error if rs.Has() returns true
-func (rs Routes) Get(pattern, method string) (Handler, error) {
-	if !rs.Has(pattern, method) {
-		return nil, ErrRouteNotFound{pattern: pattern, method: method}
+// Returns ErrPatternNotFound if pattern that matches path not found
+// Returns ErrMethodNotAllowed if this method not found for matching pattern
+func (rs Routes) Get(path, method string) (Handler, error) {
+	if !rs.HasPattern(path) {
+		return nil, ErrPathNotFound{path: path}
 	}
 
-	return rs[pattern][method], nil
+	if !rs.Has(path, method) {
+		return nil, ErrMethodNotAllowed{path: path, method: method}
+	}
+
+	return rs[path][method], nil
 }
 
 // Checks if route in routes
@@ -60,11 +65,19 @@ func (e ErrRouteAlreadyExists) Error() string {
 	return fmt.Sprintf("route with pattern '%s' and method '%s' already exists", e.pattern, e.method)
 }
 
-type ErrRouteNotFound struct {
-	pattern string
-	method  string
+type ErrPathNotFound struct {
+	path string
 }
 
-func (e ErrRouteNotFound) Error() string {
-	return fmt.Sprintf("route with pattern '%s' and method '%s' not found", e.pattern, e.method)
+func (e ErrPathNotFound) Error() string {
+	return fmt.Sprintf("pattern that matches '%s' not found", e.path)
+}
+
+type ErrMethodNotAllowed struct {
+	path   string
+	method string
+}
+
+func (e ErrMethodNotAllowed) Error() string {
+	return fmt.Sprintf("method '%s' not found for path '%s'", e.method, e.path)
 }
