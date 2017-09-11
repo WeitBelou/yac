@@ -10,40 +10,40 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type route struct {
-	method  string
-	pattern string
+var staticRoutes = Routes{
+	"/users": Methods{
+		http.MethodGet: emptyHandlerFunc,
+	},
 }
 
-var staticRoutes = []route{
-	{http.MethodGet, "/users"},
-	{http.MethodPost, "/users"},
-	{http.MethodGet, "/about"},
+// Helper to create router from routes.
+func createRouter(t *testing.T, routes Routes) Router {
+	router := NewRouter()
+	for pattern, methods := range routes {
+		for method, handler := range methods {
+			err := router.Route(pattern, method, handler)
+			require.Nil(t, err, "can not set route '%s' '%s': %v", method, pattern, err)
+		}
+	}
+	return router
 }
 
 func TestRouterResolveStatic(t *testing.T) {
-	router := NewRouter()
-	for _, r := range staticRoutes {
-		err := router.Route(r.pattern, r.method, emptyHandlerFunc)
-		require.Nil(t, err, "can not set route %+v: %v", r, err)
-	}
+	router := createRouter(t, staticRoutes)
 
-	for _, r := range staticRoutes {
-		req := httptest.NewRequest(r.method, r.pattern, nil)
-		w := httptest.NewRecorder()
+	for pattern, methods := range staticRoutes {
+		for method := range methods {
+			req := httptest.NewRequest(method, pattern, nil)
+			w := httptest.NewRecorder()
 
-		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusOK, w.Code, "can not resolve route %+v", r)
+			router.ServeHTTP(w, req)
+			assert.Equal(t, http.StatusOK, w.Code, "can not resolve route '%s' '%s'", method, pattern)
+		}
 	}
 }
 
 func TestRouterResolveNotFound(t *testing.T) {
-	router := NewRouter()
-	for _, r := range staticRoutes {
-		err := router.Route(r.pattern, r.method, emptyHandlerFunc)
-		require.Nil(t, err, "can not set route %+v: %v", r, err)
-	}
-
+	router := createRouter(t, staticRoutes)
 	req := httptest.NewRequest(http.MethodGet, "/notfound", nil)
 	w := httptest.NewRecorder()
 

@@ -43,11 +43,12 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 // Handles request: iterate over all routes before finds first matching route.
 func (r *Router) handleRequest(w http.ResponseWriter, req *http.Request) {
 	if !r.routes.HasPattern(req.URL.Path) {
-		pathNotFound(w, req)
+		pathNotFound(w)
 	}
 }
 
-func pathNotFound(w http.ResponseWriter, req *http.Request) {
+// Default path not found response.
+func pathNotFound(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusNotFound)
-	fmt.Fprintf(w, "path %s not found", req.URL)
+	fmt.Fprint(w, "Not found!")
 }
