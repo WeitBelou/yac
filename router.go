@@ -12,8 +12,9 @@ type Router struct {
 }
 
 // Returns new router
-func NewRouter() *Router {
-	return &Router{
+func NewRouter() Router {
+	return Router{
+		routes:   NewRoutes(),
 		wrappers: Wrappers{},
 	}
 }
@@ -29,16 +30,6 @@ func (r *Router) Route(pattern, method string, h Handler) error {
 	return r.routes.Add(pattern, method, h)
 }
 
-// Adds Get handler
-func (r *Router) Get(pattern string, h Handler) error {
-	return r.Route(pattern, http.MethodGet, h)
-}
-
-// Adds Post handler
-func (r *Router) Post(pattern string, handler Handler) error {
-	return r.Route(pattern, http.MethodPost, handler)
-}
-
 // Listen on given port
 func (r *Router) ListenAndServe(port string) error {
 	return http.ListenAndServe(fmt.Sprintf(":%s", port), r)
@@ -51,7 +42,9 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 // Handles request: iterate over all routes before finds first matching route.
 func (r *Router) handleRequest(w http.ResponseWriter, req *http.Request) {
-	pathNotFound(w, req)
+	if !r.routes.HasPattern(req.URL.Path) {
+		pathNotFound(w, req)
+	}
 }
 
 func pathNotFound(w http.ResponseWriter, req *http.Request) {

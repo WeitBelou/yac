@@ -2,10 +2,11 @@ package yac
 
 import "fmt"
 
-type Method string
-type Pattern string
+// Method name to handler
+type Methods map[string]Handler
 
-type Routes map[Pattern]map[Method]Handler
+// Pattern to methods map
+type Routes map[string]Methods
 
 func NewRoutes() Routes {
 	return make(Routes)
@@ -20,17 +21,23 @@ func (rs Routes) Add(pattern, method string, h Handler) error {
 		return ErrRouteAlreadyExists{pattern: pattern, method: method}
 	}
 
-	if rs[Pattern(pattern)] == nil {
-		rs[Pattern(pattern)] = make(map[Method]Handler)
+	if !rs.HasPattern(pattern) {
+		rs[pattern] = make(Methods)
 	}
 
-	rs[Pattern(pattern)][Method(method)] = h
+	rs[pattern][method] = h
 	return nil
 }
 
 // Checks if route in routes
 func (rs Routes) Has(pattern, method string) bool {
-	_, ok := rs[Pattern(pattern)][Method(method)]
+	_, ok := rs[pattern][method]
+	return ok
+}
+
+// Checks if pattern in routes
+func (rs Routes) HasPattern(pattern string) bool {
+	_, ok := rs[pattern]
 	return ok
 }
 
