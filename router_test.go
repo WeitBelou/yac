@@ -36,3 +36,17 @@ func TestRouterResolveStatic(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code, "can not resolve route %+v", r)
 	}
 }
+
+func TestRouterResolveNotFound(t *testing.T) {
+	router := NewRouter()
+	for _, r := range staticRoutes {
+		err := router.Route(r.pattern, r.method, emptyHandlerFunc)
+		require.Nil(t, err, "can not set route %+v: %v", r, err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/notfound", nil)
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, req)
+	assert.Equal(t, http.StatusNotFound, w.Code, "shouldn't be found")
+}
