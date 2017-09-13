@@ -88,6 +88,7 @@ func TestRouterResolvesDynamic(t *testing.T) {
 	}{
 		{"/users/{id}", "/users/123"},
 		{"/users/{user_id}/posts/{post_id}", "/users/1231/posts/1234"},
+		{"/users/{user_id}/comments/{post_id}", "/users/1231/comments/1234"},
 	}
 
 	router := NewRouter()
