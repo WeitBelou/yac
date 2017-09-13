@@ -37,13 +37,8 @@ func (r *Router) ListenAndServe(port string) error {
 
 // Implements http.Handler interface
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	path := req.URL.Path
-	if !r.routes.HasPattern(path) {
-		pathNotFound(w)
-		return
-	}
+	handler, err := r.routes.Get(req.URL.Path, req.Method)
 
-	handler, err := r.routes.Get(path, req.Method)
 	switch err.(type) {
 	case ErrPathNotFound:
 		pathNotFound(w)

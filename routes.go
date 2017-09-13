@@ -25,7 +25,7 @@ func (rs Routes) Add(pattern, method string, h Handler) error {
 		rs[pattern] = make(Methods)
 	}
 
-	rs[pattern][method] = h
+	rs[(patternToRegexp(pattern))][method] = h
 	return nil
 }
 

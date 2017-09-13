@@ -80,3 +80,33 @@ func TestRouterResponse(t *testing.T) {
 
 	assert.Equal(t, "users", w.Body.String(), "wrong response for 'GET' '/users'")
 }
+
+func TestParamRegexp(t *testing.T) {
+	var paramsCases = []struct {
+		pattern string
+		name    string
+	}{
+		{"{id}", "id"},
+		{"{user_id}", "user_id"},
+	}
+
+	for _, param := range paramsCases {
+		assert.Regexp(t, paramRegexp, param.pattern)
+	}
+}
+
+func TestExtractRegexpFromPattern(t *testing.T) {
+	var cases = []struct {
+		pattern string
+		re      string
+	}{
+		{"/users/{id}", `/users/(?P<id>[[:alnum:]]+?)`},
+		{"/users/{user_id}/posts/{post_id}",
+			`/users/(?P<user_id>[[:alnum:]]+?)/posts/(?P<post_id>[[:alnum:]]+?)`},
+	}
+
+	for _, c := range cases {
+		re := patternToRegexp(c.pattern)
+		assert.Equal(t, c.re, re)
+	}
+}
