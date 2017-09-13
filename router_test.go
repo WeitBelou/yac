@@ -92,7 +92,7 @@ func TestRouterResolvesDynamic(t *testing.T) {
 
 	router := NewRouter()
 	for _, c := range cases {
-		err := router.Route(c.pattern, http.MethodGet, emptyHandlerFunc)
+		err := router.Route(c.pattern, http.MethodGet, patternEchoHandler{pattern: c.pattern})
 		require.Nil(t, err, "can not set route 'GET' '%s': %v", c.pattern, err)
 	}
 
@@ -102,6 +102,14 @@ func TestRouterResolvesDynamic(t *testing.T) {
 
 		router.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusOK, w.Code, "can not resolve '%s'", c.path)
+		assert.Equal(t, c.pattern, w.Body.String(), "path '%s' routes to wrong pattern", c.path)
 	}
+}
 
+type patternEchoHandler struct {
+	pattern string
+}
+
+func (h patternEchoHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	w.Write([]byte(h.pattern))
 }
