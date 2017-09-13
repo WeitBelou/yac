@@ -81,32 +81,27 @@ func TestRouterResponse(t *testing.T) {
 	assert.Equal(t, "users", w.Body.String(), "wrong response for 'GET' '/users'")
 }
 
-func TestParamRegexp(t *testing.T) {
-	var paramsCases = []struct {
-		pattern string
-		name    string
-	}{
-		{"{id}", "id"},
-		{"{user_id}", "user_id"},
-	}
-
-	for _, param := range paramsCases {
-		assert.Regexp(t, paramRegexp, param.pattern)
-	}
-}
-
-func TestExtractRegexpFromPattern(t *testing.T) {
+func TestRouterResolvesDynamic(t *testing.T) {
 	var cases = []struct {
 		pattern string
-		re      string
+		path    string
 	}{
-		{"/users/{id}", `/users/(?P<id>[[:alnum:]]+?)`},
-		{"/users/{user_id}/posts/{post_id}",
-			`/users/(?P<user_id>[[:alnum:]]+?)/posts/(?P<post_id>[[:alnum:]]+?)`},
+		{"/users/{id}", "/users/123"},
+		{"/users/{user_id}/posts/{post_id}", "/users/1231/posts/1234"},
+	}
+
+	router := NewRouter()
+	for _, c := range cases {
+		err := router.Route(c.pattern, http.MethodGet, emptyHandlerFunc)
+		require.Nil(t, err, "can not set route 'GET' '%s': %v", c.pattern, err)
 	}
 
 	for _, c := range cases {
-		re := patternToRegexp(c.pattern)
-		assert.Equal(t, c.re, re)
+		req := httptest.NewRequest(http.MethodGet, c.path, nil)
+		w := httptest.NewRecorder()
+
+		router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusOK, w.Code, "can not resolve '%s'", c.path)
 	}
+
 }

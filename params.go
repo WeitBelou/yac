@@ -1,12 +1,28 @@
 package yac
 
-import "regexp"
+import "strings"
 
 type Params map[string]string
 
-var paramRegexp = regexp.MustCompile(`{([[:word:]]+?)}`)
+func matchPattern(pattern, path string) bool {
+	if pattern == path {
+		return true
+	}
 
-// Replaces all quasi patterns with regexp named groups
-func patternToRegexp(pattern string) string {
-	return paramRegexp.ReplaceAllString(pattern, `(?P<$1>[[:alnum:]]+?)`)
+	patternParts := strings.Split(pattern, "/")
+	pathParts := strings.Split(path, "/")
+
+	if len(patternParts) != len(pathParts) {
+		return false
+	}
+
+	for i, part := range patternParts {
+		if part != pathParts[i] {
+			if !strings.HasPrefix(part, "{") || !strings.HasSuffix(part, "}") {
+				return false
+			}
+		}
+	}
+
+	return true
 }

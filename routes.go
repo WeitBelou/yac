@@ -25,7 +25,7 @@ func (rs Routes) Add(pattern, method string, h Handler) error {
 		rs[pattern] = make(Methods)
 	}
 
-	rs[(patternToRegexp(pattern))][method] = h
+	rs[pattern][method] = h
 	return nil
 }
 
@@ -33,15 +33,27 @@ func (rs Routes) Add(pattern, method string, h Handler) error {
 // Returns ErrPatternNotFound if pattern that matches path not found
 // Returns ErrMethodNotAllowed if this method not found for matching pattern
 func (rs Routes) Get(path, method string) (Handler, error) {
-	if !rs.HasPattern(path) {
+	pattern := rs.GetPatternByPath(path)
+	if pattern == "" {
 		return nil, ErrPathNotFound{path: path}
 	}
 
-	if !rs.Has(path, method) {
+	if !rs.Has(pattern, method) {
 		return nil, ErrMethodNotAllowed{path: path, method: method}
 	}
 
-	return rs[path][method], nil
+	return rs[pattern][method], nil
+}
+
+// Returns first pattern that matches this path
+// If not found returns empty string
+func (rs Routes) GetPatternByPath(path string) string {
+	for pattern := range rs {
+		if matchPattern(pattern, path) {
+			return pattern
+		}
+	}
+	return ""
 }
 
 // Checks if route in routes
