@@ -2,6 +2,6 @@
 
 ### Tests and benchmarks
 ```bash
-$ go test . ./test/
-$ go test -bench=. . ./test/ -benchmem
+$ go test .
+$ go test -bench=.
 ```
