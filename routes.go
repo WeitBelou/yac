@@ -1,6 +1,10 @@
 package yac
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/weitbelou/yac/params"
+)
 
 // Method name to handler
 type Methods map[string]Handler
@@ -32,8 +36,8 @@ func (rs Routes) Add(pattern, method string, h Handler) error {
 // Returns handler for 'pattern' 'method'
 // Returns ErrPatternNotFound if pattern that matches path not found
 // Returns ErrMethodNotAllowed if this method not found for matching pattern
-func (rs Routes) Get(path, method string) (Handler, Params, error) {
-	pattern, params := rs.GetPatternAndParamsByPath(path)
+func (rs Routes) Get(path, method string) (Handler, params.Params, error) {
+	pattern, p := rs.GetPatternAndParamsByPath(path)
 
 	if pattern == "" {
 		return nil, nil, ErrPathNotFound{path: path}
@@ -43,19 +47,19 @@ func (rs Routes) Get(path, method string) (Handler, Params, error) {
 		return nil, nil, ErrMethodNotAllowed{path: path, method: method}
 	}
 
-	return rs[pattern][method], params, nil
+	return rs[pattern][method], p, nil
 }
 
 // Returns first pattern that matches this path
 // If not found returns empty string
-func (rs Routes) GetPatternAndParamsByPath(path string) (string, Params) {
+func (rs Routes) GetPatternAndParamsByPath(path string) (string, params.Params) {
 	for pattern := range rs {
-		params, err := extractParams(pattern, path)
+		p, err := params.New(pattern, path)
 		if err != nil {
 			continue
 		}
 
-		return pattern, params
+		return pattern, p
 	}
 
 	return "", nil

@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/weitbelou/yac/params"
 )
 
 var usersHandler = HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
@@ -148,8 +149,8 @@ func TestRouterParams(t *testing.T) {
 
 // Writes params as json to response.
 var paramsEchoHandlerFunc = HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-	params := req.Context().Value(ParamsContextKey).(Params)
-	j, _ := json.Marshal(params)
+	p := req.Context().Value(params.ContextKey).(params.Params)
+	j, _ := json.Marshal(p)
 
 	w.Write(j)
 })

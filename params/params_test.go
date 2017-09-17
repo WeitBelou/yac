@@ -1,4 +1,4 @@
-package yac
+package params
 
 import (
 	"testing"

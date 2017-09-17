@@ -1,4 +1,4 @@
-package yac
+package params
 
 import (
 	"fmt"
@@ -7,7 +7,11 @@ import (
 
 type Params map[string]string
 
-const ParamsContextKey = "_params"
+func New(pattern, path string) (Params, error) {
+	return extractParams(pattern, path)
+}
+
+const ContextKey = "_params"
 
 // Extracts params determined by pattern from given path
 func extractParams(pattern, path string) (Params, error) {
