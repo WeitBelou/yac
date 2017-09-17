@@ -32,28 +32,33 @@ func (rs Routes) Add(pattern, method string, h Handler) error {
 // Returns handler for 'pattern' 'method'
 // Returns ErrPatternNotFound if pattern that matches path not found
 // Returns ErrMethodNotAllowed if this method not found for matching pattern
-func (rs Routes) Get(path, method string) (Handler, error) {
-	pattern := rs.GetPatternByPath(path)
+func (rs Routes) Get(path, method string) (Handler, Params, error) {
+	pattern, params := rs.GetPatternAndParamsByPath(path)
+
 	if pattern == "" {
-		return nil, ErrPathNotFound{path: path}
+		return nil, nil, ErrPathNotFound{path: path}
 	}
 
 	if !rs.Has(pattern, method) {
-		return nil, ErrMethodNotAllowed{path: path, method: method}
+		return nil, nil, ErrMethodNotAllowed{path: path, method: method}
 	}
 
-	return rs[pattern][method], nil
+	return rs[pattern][method], params, nil
 }
 
 // Returns first pattern that matches this path
 // If not found returns empty string
-func (rs Routes) GetPatternByPath(path string) string {
+func (rs Routes) GetPatternAndParamsByPath(path string) (string, Params) {
 	for pattern := range rs {
-		if matchPattern(pattern, path) {
-			return pattern
+		params, err := extractParams(pattern, path)
+		if err != nil {
+			continue
 		}
+
+		return pattern, params
 	}
-	return ""
+
+	return "", nil
 }
 
 // Checks if route in routes

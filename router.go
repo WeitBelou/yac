@@ -1,6 +1,7 @@
 package yac
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 )
@@ -37,7 +38,7 @@ func (r *Router) ListenAndServe(port string) error {
 
 // Implements http.Handler interface
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	handler, err := r.routes.Get(req.URL.Path, req.Method)
+	handler, params, err := r.routes.Get(req.URL.Path, req.Method)
 
 	switch err.(type) {
 	case ErrPathNotFound:
@@ -45,7 +46,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	case ErrMethodNotAllowed:
 		methodNotAllowed(w)
 	default:
-		handler.ServeHTTP(w, req)
+		handler.ServeHTTP(w, req.WithContext(context.WithValue(req.Context(), ParamsContextKey, params)))
 	}
 }
 
