@@ -5,16 +5,16 @@ import (
 	"strings"
 )
 
-type Params map[string]string
+type Container map[string]string
 
-func New(pattern, path string) (Params, error) {
+func New(pattern, path string) (Container, error) {
 	return extractParams(pattern, path)
 }
 
 const ContextKey = "_params"
 
 // Extracts params determined by pattern from given path
-func extractParams(pattern, path string) (Params, error) {
+func extractParams(pattern, path string) (Container, error) {
 	if !matchPattern(pattern, path) {
 		return nil, fmt.Errorf("'%s' doesn't match pattern '%s'", path, pattern)
 	}
@@ -22,7 +22,7 @@ func extractParams(pattern, path string) (Params, error) {
 	patternParts := strings.Split(pattern, "/")
 	pathParts := strings.Split(path, "/")
 
-	params := Params{}
+	params := Container{}
 
 	for i, part := range patternParts {
 		if part != pathParts[i] {

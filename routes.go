@@ -36,7 +36,7 @@ func (rs Routes) Add(pattern, method string, h Handler) error {
 // Returns handler for 'pattern' 'method'
 // Returns ErrPatternNotFound if pattern that matches path not found
 // Returns ErrMethodNotAllowed if this method not found for matching pattern
-func (rs Routes) Get(path, method string) (Handler, params.Params, error) {
+func (rs Routes) Get(path, method string) (Handler, params.Container, error) {
 	pattern, p := rs.GetPatternAndParamsByPath(path)
 
 	if pattern == "" {
@@ -52,7 +52,7 @@ func (rs Routes) Get(path, method string) (Handler, params.Params, error) {
 
 // Returns first pattern that matches this path
 // If not found returns empty string
-func (rs Routes) GetPatternAndParamsByPath(path string) (string, params.Params) {
+func (rs Routes) GetPatternAndParamsByPath(path string) (string, params.Container) {
 	for pattern := range rs {
 		p, err := params.New(pattern, path)
 		if err != nil {

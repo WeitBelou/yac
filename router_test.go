@@ -149,7 +149,7 @@ func TestRouterParams(t *testing.T) {
 
 // Writes params as json to response.
 var paramsEchoHandlerFunc = HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-	p := req.Context().Value(params.ContextKey).(params.Params)
+	p := req.Context().Value(params.ContextKey).(params.Container)
 	j, _ := json.Marshal(p)
 
 	w.Write(j)

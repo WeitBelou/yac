@@ -26,12 +26,12 @@ func TestExtractParamsFromPath(t *testing.T) {
 	var cases = []struct {
 		pattern string
 		path    string
-		params  Params
+		params  Container
 	}{
-		{"/users", "/users", Params{}},
-		{"/users/{id}", "/users/12", Params{"id": "12"}},
+		{"/users", "/users", Container{}},
+		{"/users/{id}", "/users/12", Container{"id": "12"}},
 		{"/users/{user_id}/posts/{post_id}", "/users/12/posts/123",
-			Params{"user_id": "12", "post_id": "123"}},
+			Container{"user_id": "12", "post_id": "123"}},
 	}
 
 	for _, c := range cases {
