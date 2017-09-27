@@ -3,12 +3,14 @@ package yac
 import (
 	"fmt"
 	"net/http"
+	"sync"
 )
 
 type methods map[string]http.Handler
 type routes map[string]methods
 
 type Router struct {
+	mu sync.Mutex
 	rs routes
 }
 
@@ -34,6 +36,9 @@ func (r Router) getHandler(path, method string) http.Handler {
 
 // Handle registers handler for given route.
 func (r *Router) Handle(method string, path string, h http.Handler) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	errs := validateRoute(method, path, h)
 	if len(errs) != 0 {
 		return fmt.Errorf("invalid route: %v", errs)
