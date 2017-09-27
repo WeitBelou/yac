@@ -1,10 +1,12 @@
 package yac_test
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/weitbelou/yac"
 )
 
@@ -41,10 +43,11 @@ func BenchmarkYacRouterSeveral(b *testing.B) {
 	}
 }
 
-func getMuxHandlerForMethods(methods ...string) http.Handler {
+func getMuxHandlerForMethods(base http.Handler, methods []string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		for _, m := range methods {
 			if req.Method == m {
+				base.ServeHTTP(w, req)
 				return
 			}
 		}
@@ -63,7 +66,7 @@ func BenchmarkHTTPMuxSeveral(b *testing.B) {
 
 	router := http.ServeMux{}
 	for _, c := range cases {
-		router.Handle(c.path, getMuxHandlerForMethods(c.methods...))
+		router.Handle(c.path, getMuxHandlerForMethods(emptyHandlerFunc, c.methods))
 	}
 
 	w := httptest.NewRecorder()
@@ -79,5 +82,47 @@ func BenchmarkHTTPMuxSeveral(b *testing.B) {
 				router.ServeHTTP(w, req)
 			}
 		}
+	}
+}
+
+func TestHTTPMuxSeveral(t *testing.T) {
+	cases := []struct {
+		path    string
+		methods []string
+	}{
+		{"/users", []string{http.MethodGet, http.MethodPost}},
+		{"/users/messages", []string{http.MethodGet, http.MethodPost, http.MethodDelete, http.MethodPatch}},
+	}
+
+	router := http.ServeMux{}
+	for _, c := range cases {
+		router.Handle(c.path, getMuxHandlerForMethods(echoHandlerFunc, c.methods))
+	}
+
+	for _, c := range cases {
+		for _, m := range c.methods {
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest(m, c.path, nil)
+
+			router.ServeHTTP(w, req)
+			assert.Equal(t, http.StatusOK, w.Result().StatusCode)
+			assert.Equal(t, fmt.Sprintf("%s:%s", m, c.path), w.Body.String())
+		}
+	}
+}
+
+func TestYacRouterSeveral(t *testing.T) {
+	router := yac.Router{}
+	for _, r := range cases {
+		router.Handle(r.method, r.path, echoHandlerFunc)
+	}
+
+	for _, c := range cases {
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(c.method, c.path, nil)
+
+		router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusOK, w.Result().StatusCode)
+		assert.Equal(t, fmt.Sprintf("%s:%s", c.method, c.path), w.Body.String())
 	}
 }
