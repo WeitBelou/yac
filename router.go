@@ -14,14 +14,14 @@ type Router struct {
 	rs routes
 }
 
-func (r Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	h := r.getHandler(req.URL.Path, req.Method)
 
 	h.ServeHTTP(w, req)
 }
 
 // getHandler returns handler or fallback
-func (r Router) getHandler(path, method string) http.Handler {
+func (r *Router) getHandler(path, method string) http.Handler {
 	ms, pathFound := r.rs[path]
 	if !pathFound {
 		return http.HandlerFunc(notFound)
