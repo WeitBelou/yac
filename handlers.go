@@ -5,11 +5,11 @@ import (
 	"net/http"
 )
 
-func defaultNotFoundHandler(w http.ResponseWriter, req *http.Request) {
+func notFound(w http.ResponseWriter, req *http.Request) {
 	errorResponseJSON(w, http.StatusNotFound, fmt.Errorf("'%s' not found", req.URL.Path))
 }
 
-func defaultMethodNotAllowedHandler(w http.ResponseWriter, req *http.Request) {
+func methodNotAllowed(w http.ResponseWriter, req *http.Request) {
 	errorResponseJSON(w, http.StatusMethodNotAllowed,
 		fmt.Errorf("method '%s' not allowed on path '%s'", req.Method, req.URL.Path))
 }

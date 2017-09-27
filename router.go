@@ -13,19 +13,23 @@ type Router struct {
 }
 
 func (r Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	ms, pathFound := r.rs[req.URL.Path]
-	if !pathFound {
-		defaultNotFoundHandler(w, req)
-		return
-	}
-
-	h, methodAllowed := ms[req.Method]
-	if !methodAllowed {
-		defaultMethodNotAllowedHandler(w, req)
-		return
-	}
+	h := r.getHandler(req.URL.Path, req.Method)
 
 	h.ServeHTTP(w, req)
+}
+
+// getHandler returns handler or fallback
+func (r Router) getHandler(path, method string) http.Handler {
+	ms, pathFound := r.rs[path]
+	if !pathFound {
+		return http.HandlerFunc(notFound)
+	}
+
+	h, methodAllowed := ms[method]
+	if !methodAllowed {
+		return http.HandlerFunc(methodNotAllowed)
+	}
+	return h
 }
 
 // Handle registers handler for given route.
