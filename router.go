@@ -30,6 +30,11 @@ func (r Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 // Handle registers handler for given route.
 func (r *Router) Handle(method string, path string, h http.Handler) error {
+	errs := validateRoute(method, path, h)
+	if len(errs) != 0 {
+		return fmt.Errorf("invalid route: %v", errs)
+	}
+
 	if len(r.rs) == 0 {
 		r.rs = make(routes, 1)
 	}

@@ -24,6 +24,14 @@ func TestRouterRouteExists(t *testing.T) {
 	assert.Equal(t, "route with path '/' and method 'GET' already exists", err.Error(), "unexpected type")
 }
 
+func TestRouterInvalidRoute(t *testing.T) {
+	router := yac.Router{}
+
+	err := router.Handle("", "/", emptyHandlerFunc)
+	require.NotNil(t, err, "can not add route to empty router: %v", err)
+	assert.Equal(t, "invalid route: [empty method]", err.Error())
+}
+
 var echoHandlerFunc = http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "%s:%s", req.Method, req.URL.Path)
 })
