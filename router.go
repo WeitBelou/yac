@@ -8,34 +8,32 @@ import (
 type methods map[string]http.Handler
 type routes map[string]methods
 
-type router struct {
+type Router struct {
 	rs routes
 }
 
-// Creates new router
-func NewRouter() router {
-	return router{rs: make(routes)}
-}
-
-func (r router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func (r Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	ms, pathFound := r.rs[req.URL.Path]
 	if !pathFound {
-		handleNotFound(w, req)
+		defaultNotFoundHandler(w, req)
 		return
 	}
 
 	h, methodAllowed := ms[req.Method]
 	if !methodAllowed {
-		handleMethodNotAllowed(w, req)
+		defaultMethodNotAllowedHandler(w, req)
 		return
 	}
 
 	h.ServeHTTP(w, req)
 }
 
-// Add handler for given path and method.
-// Returns error if there such route already exists.
-func (r router) Handle(method string, path string, h http.Handler) error {
+// Handle registers handler for given route.
+func (r *Router) Handle(method string, path string, h http.Handler) error {
+	if len(r.rs) == 0 {
+		r.rs = make(routes, 1)
+	}
+
 	ms, pathExists := r.rs[path]
 	if !pathExists {
 		r.rs[path] = make(methods, 1)

@@ -14,7 +14,7 @@ import (
 var emptyHandlerFunc = http.HandlerFunc(func(http.ResponseWriter, *http.Request) {})
 
 func TestRouterRouteExists(t *testing.T) {
-	router := yac.NewRouter()
+	router := yac.Router{}
 
 	err := router.Handle(http.MethodGet, "/", emptyHandlerFunc)
 	require.Nil(t, err, "can not add route to empty router: %v", err)
@@ -39,7 +39,7 @@ func TestRouterStaticPath(t *testing.T) {
 		{"/users", http.MethodPost},
 	}
 
-	router := yac.NewRouter()
+	router := yac.Router{}
 	for _, c := range cases {
 		err := router.Handle(c.method, c.path, echoHandlerFunc)
 		require.Nil(t, err, "can not add route: %v", err)
@@ -56,7 +56,7 @@ func TestRouterStaticPath(t *testing.T) {
 }
 
 func TestRouterNotFound(t *testing.T) {
-	router := yac.NewRouter()
+	router := yac.Router{}
 
 	err := router.Handle(http.MethodGet, "/", emptyHandlerFunc)
 	require.Nil(t, err, "can not add route: %v", err)
@@ -70,7 +70,7 @@ func TestRouterNotFound(t *testing.T) {
 }
 
 func TestRouterMethodNotAllowed(t *testing.T) {
-	router := yac.NewRouter()
+	router := yac.Router{}
 
 	err := router.Handle(http.MethodGet, "/", emptyHandlerFunc)
 	require.Nil(t, err, "can not add route: %v", err)
