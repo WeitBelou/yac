@@ -12,6 +12,9 @@ type routes map[string]methods
 type Router struct {
 	mu sync.Mutex
 	rs routes
+
+	NotFound         http.Handler
+	MethodNotAllowed http.Handler
 }
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -24,12 +27,18 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 func (r *Router) getHandler(path, method string) http.Handler {
 	ms, pathFound := r.rs[path]
 	if !pathFound {
-		return http.HandlerFunc(notFound)
+		if r.NotFound == nil {
+			return http.HandlerFunc(notFound)
+		}
+		return r.NotFound
 	}
 
 	h, methodAllowed := ms[method]
 	if !methodAllowed {
-		return http.HandlerFunc(methodNotAllowed)
+		if r.MethodNotAllowed == nil {
+			return http.HandlerFunc(methodNotAllowed)
+		}
+		return r.MethodNotAllowed
 	}
 	return h
 }
