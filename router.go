@@ -1,65 +1,65 @@
 package yac
 
 import (
-	"context"
 	"fmt"
 	"net/http"
-
-	"github.com/weitbelou/yac/params"
+	"sync"
 )
 
+type methods map[string]http.Handler
+type routes map[string]methods
+
 type Router struct {
-	routes Routes
-
-	wrappers Wrappers
+	mu sync.Mutex
+	rs routes
 }
 
-// Returns new router
-func NewRouter() Router {
-	return Router{
-		routes:   NewRoutes(),
-		wrappers: Wrappers{},
-	}
-}
-
-// Add wrappers to router
-// Wrappers will be applied to handler function of every route.
-func (r *Router) AddWrappers(wrappers ...Wrapper) {
-	r.wrappers = append(r.wrappers, wrappers...)
-}
-
-// Add new route to routes.
-func (r *Router) Route(pattern, method string, h Handler) error {
-	return r.routes.Add(pattern, method, h)
-}
-
-// Listen on given port
-func (r *Router) ListenAndServe(port string) error {
-	return http.ListenAndServe(fmt.Sprintf(":%s", port), r)
-}
-
-// Implements http.Handler interface
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	handler, p, err := r.routes.Get(req.URL.Path, req.Method)
+	h := r.getHandler(req.URL.Path, req.Method)
 
-	switch err.(type) {
-	case ErrPathNotFound:
-		pathNotFound(w)
-	case ErrMethodNotAllowed:
-		methodNotAllowed(w)
-	default:
-		handler.ServeHTTP(w, req.WithContext(context.WithValue(req.Context(), params.ContextKey, p)))
+	h.ServeHTTP(w, req)
+}
+
+// getHandler returns handler or fallback
+func (r *Router) getHandler(path, method string) http.Handler {
+	ms, pathFound := r.rs[path]
+	if !pathFound {
+		return http.HandlerFunc(notFound)
 	}
+
+	h, methodAllowed := ms[method]
+	if !methodAllowed {
+		return http.HandlerFunc(methodNotAllowed)
+	}
+	return h
 }
 
-// Default response for "path not found".
-func pathNotFound(w http.ResponseWriter) {
-	w.WriteHeader(http.StatusNotFound)
-	w.Write([]byte("Not found!"))
-}
+// Handle registers handler for given route.
+func (r *Router) Handle(method string, path string, h http.Handler) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 
-// Default response for "method not allowed"
-func methodNotAllowed(w http.ResponseWriter) {
-	w.WriteHeader(http.StatusMethodNotAllowed)
-	w.Write([]byte("Method not allowed!"))
+	errs := validateRoute(method, path, h)
+	if len(errs) != 0 {
+		return fmt.Errorf("invalid route: %v", errs)
+	}
+
+	if len(r.rs) == 0 {
+		r.rs = make(routes, 1)
+	}
+
+	ms, pathExists := r.rs[path]
+	if !pathExists {
+		r.rs[path] = make(methods, 1)
+		r.rs[path][method] = h
+		return nil
+	}
+
+	_, methodExists := ms[method]
+	if methodExists {
+		return fmt.Errorf("route with path '%s' and method '%s' already exists", path, method)
+	}
+
+	r.rs[path][method] = h
+	return nil
 }
